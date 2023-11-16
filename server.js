@@ -3,6 +3,8 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const cluster =  require('node:cluster');
 
+
+
 // const {Server} =  require('socket.io');
 // const Device = ("./models/device.model.js");
 
@@ -43,37 +45,64 @@ const dotenv = require('dotenv');
     if (cluster.isMaster) {
         console.log(`Primary ${process.pid} is running`);
 
-        // setInterval(()=>{
-         
-              
-        //   }, 60000 * 60 * 12);
-    
-        // const cron = require('node-cron');
-    
-        
+        const mqtt = require("mqtt");
+        const client = mqtt.connect("mqtt://192.168.2.10:7005", {password: "xirka@30", username: "antam"});
 
-        // cron.schedule("0 0 18 * * *", async ()=>{
-  
-        //     const {syncOracleDb2} = require("./data/controllers/peralatan.controller.js");
-        //     // try {
-        //         syncOracleDb2();
 
-        //           // } catch (error) {
-        //     //     console.log(error);
-        //     // }
+        client.on("connect", () => {
+          client.subscribe("antam/device", (err) => {
+            if(err){
+              console.log(err);
+            }
+          });
+
+          console.log("connected mqtt");
+        });
+
+        client.on("message", (topic, message) => {
+          // message is Buffer
           
-    
-        //     // const now = Date.now();
-    
-        
-    
 
+          if(topic == "antam/device"){
+            // console.log(message);
+            let { timeStamp, tangkiData} = JSON.parse(message.toString());
+
+            // console.log(tangkiData[0]);
+
+
+            if(typeof timeStamp === 'undefined'){
+              console.log("no timeStamp ");
+              return;
+            }else if(isNaN(timeStamp)){
+              console.log("wrong timeStamp format");
+              return;
+            }
+
+            if(typeof tangkiData === 'undefined'){
+              console.log("no tangkiData ");
+              return;
+            }else if(typeof tangkiData[0] === 'undefined' || typeof tangkiData[0][0] !== 'object' ){
+              console.log("wrong tangki data format");
+              return;
+            }
             
-    
-            
-        // })
-      
-        // Fork workers.
+            let monit = require("./data/models/monitoring.model.js");
+
+            let nMonit = new monit({
+              timeStamp: timeStamp,
+              tangkiData: tangkiData
+            })
+
+            nMonit.save().catch((err)=>{
+              console.log(err);
+             
+          });
+          }
+          // client.end();
+        });
+        
+        
+        
         console.log(numCPUs);
         for (let i = 0; i < numCPUs; i++) {
           cluster.fork();

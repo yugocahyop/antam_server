@@ -27,12 +27,15 @@ exports.create = async (res, db, body, check, inputsList, struct, name)=>{
 
     // let {event_name, jenis_relay, nama_alat} = body;
 
-    const re2 = await db.findOne(check).exec();
+    if(check){
+      const re2 = await db.findOne(check).exec();
     
 
     if(re2){
       return res.status(400).send({error: name+ " sudah ada " });
     }
+    }
+    
 
     if( !validate(body, inputsList,struct, res)){
       return;

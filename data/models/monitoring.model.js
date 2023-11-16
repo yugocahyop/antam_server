@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 
 const AppSchema = mongoose.Schema({
+
  timeStamp: Number,
  tangkiData: Array
 });

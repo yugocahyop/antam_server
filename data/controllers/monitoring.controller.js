@@ -36,7 +36,7 @@ exports.update =  async(req, res) => {
 }
 
 exports.find = async(req, res ) => {
-    const {from, to} = req.body;
+    let {from, to} = req.body;
 
     if(!from){
         res.status(400).send({error: "from is required"});
