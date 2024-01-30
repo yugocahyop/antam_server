@@ -1,5 +1,5 @@
 
-const Monitoring = require("../models/monitoring.model.js");
+const Diagnostic = require("../models/diagnostic.model.js");
 
 const controller = require("./controller.js");
 
@@ -13,14 +13,14 @@ const struct =  {
     tangkiData : "Array",
 };
 
-exports.structMonitoring = struct;
+exports.structDiagnostic = struct;
 exports.inputListMontioring = inputList;
 
 
 exports.create =  async(req, res) => {
 
     
-    controller.create(res, Monitoring, req.body, { }, inputList, struct , "Monitoring" );
+    controller.create(res, Diagnostic, req.body, { }, inputList, struct , "Diagnostic" );
 }
 
 exports.update =  async(req, res) => {
@@ -31,7 +31,7 @@ exports.update =  async(req, res) => {
     // console.log(f);
 
    
-    controller.update(res, Monitoring, req.body, req.params.id, inputList, struct , "Monitoring" );
+    controller.update(res, Diagnostic, req.body, req.params.id, inputList, struct , "Diagnostic" );
     
 }
 
@@ -45,22 +45,22 @@ exports.find = async(req, res ) => {
 
     let find = to ? {$and: [{timeStamp: {$lte: from}}, {timeStamp: {$gte: to}} ]} : {timeStamp: {$lte: from}};
 
-    controller.find(res, Monitoring, req.query, find, {timeStamp:-1});
+    controller.find(res, Diagnostic, req.query, find, {timeStamp:-1});
 }
 
 exports.findLast = async(req, res ) => {
   
     
-    controller.findOne(res, Monitoring, req.query, {}, {timeStamp_server:-1});
+    controller.findOne(res, Diagnostic, req.query, {}, {timeStamp_server:-1});
 }
 
 exports.delete = async(req, res) =>{
 
    
 
-    // const f = await Monitoring.findOne({user_id: user_id, mac: mac}).exec();
+    // const f = await Diagnostic.findOne({user_id: user_id, mac: mac}).exec();
 
-    controller.delete(res, Monitoring, req.params.id);
+    controller.delete(res, Diagnostic, req.params.id);
 
     
 

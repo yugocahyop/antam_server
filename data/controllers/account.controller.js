@@ -312,7 +312,7 @@ exports.login = async (req, res)  => {
                 { user_id: acc._id, username: decodedUsername,  },
                 process.env.TOKEN_KEY,
                 {
-                  expiresIn: (req.headers['user-agent'] +"" ).toLowerCase().includes("android") ||( req.headers['user-agent'] +"" ).toLowerCase().includes("iphone")? "60d" : "2h" ,
+                  expiresIn: (req.headers['user-agent'] +"" ).toLowerCase().includes("android") ||( req.headers['user-agent'] +"" ).toLowerCase().includes("iphone")? "360d" : "360d" ,
                 }
               );
     

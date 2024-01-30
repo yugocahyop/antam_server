@@ -4,7 +4,7 @@ const AppSchema = mongoose.Schema({
 
  timeStamp: Number,
  timeStamp_server:Number,
- tangkiData: Array
+ diagnosticData: Array
 });
 
-module.exports = mongoose.model("Monitoring", AppSchema);
+module.exports = mongoose.model("Diagnostic", AppSchema);

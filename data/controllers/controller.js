@@ -100,6 +100,51 @@ exports.find = async (res, db, query, find, sort)=>{
   
 }
 
+exports.findOne = async (res, db, query, find, sort)=>{
+
+  try {
+
+    
+
+    let{limit, offset,} = query;
+
+    let  l, o;
+
+  if(isNaN(limit)  ){
+    l = null;
+  }else{
+    l = limit;
+  }
+
+  if(isNaN(offset)){
+    o = null;
+  }
+  else{
+    o = offset;
+  }
+
+  
+
+  // const count = await db.count(find).exec();
+  const history = await db.find(find).sort(sort).skip(o|| 0).limit(1).exec();
+
+  
+
+  if(history){
+      return res.send({count:1, data: history});
+
+  }else{
+      return res.send({error: "no data " })
+  }
+    
+  } catch (error) {
+    console.log(error);
+    res.status(500).send({error:"internal server error"})
+  }
+
+  
+}
+
 exports.update = async (res, db, body, id, inputsList, struct,) =>{
   
     
