@@ -38,12 +38,12 @@ exports.update =  async(req, res) => {
 exports.find = async(req, res ) => {
     let {from, to} = req.body;
 
-    if(!from){
+    if(typeof from === 'undefined'){
         res.status(400).send({error: "from is required"});
         return;
     }
 
-    let find = to ? {$and: [{timeStamp: {$lte: from}}, {timeStamp: {$gte: to}} ]} : {timeStamp: {$lte: from}};
+    let find = to ? {$and: [{timeStamp: {$gte: from}}, {timeStamp: {$lte: to}} ]} : {timeStamp: {$gte: from}};
 
     controller.find(res, Monitoring, req.query, find, {timeStamp:-1});
 }

@@ -294,7 +294,7 @@ exports.login = async (req, res)  => {
       }
 
       if(acc.active === false){
-        return res.status(400).send({error: "the account is not active. Please activate your account"});
+        return res.status(400).send({error: "the account is not active. Please check your email for activation"});
       }
 
       // console.log(`pass ${encryptedPass}`);
@@ -309,7 +309,7 @@ exports.login = async (req, res)  => {
 
           
               const token = jwt.sign(
-                { user_id: acc._id, username: decodedUsername,  },
+                { email: acc.email, isAdmin: acc.isAdmin,  },
                 process.env.TOKEN_KEY,
                 {
                   expiresIn: (req.headers['user-agent'] +"" ).toLowerCase().includes("android") ||( req.headers['user-agent'] +"" ).toLowerCase().includes("iphone")? "360d" : "360d" ,
@@ -401,14 +401,14 @@ exports.register = async(req, res) => {
     if(acc3){
       return res.status(400).send({
           error:
-              "email had already been registered",
+              "email sudah terdaftar",
       });
   }
 
     if(pass !== passCon){
         res.status(400).send({
             error:
-                "password confirmation does not match",
+                "password konfirmasi tidak sesuai",
         });
         return;
     }
@@ -420,7 +420,9 @@ exports.register = async(req, res) => {
     username: req.body.username,
     password: encryptedPass,
     email: req.body.email,
-    phone: phone
+    phone: phone,
+    isAdmin: false,
+    role: "User"
   });
 
   crypto.randomBytes(20, function (err, buf) {

@@ -780,6 +780,7 @@ const dotenv = require('dotenv');
         require('./data/routes/monitoring.route.js')(app);
         require('./data/routes/diagnostic.route.js')(app);
         require('./data/routes/statistic.route.js')(app);
+        require('./data/routes/user.route.js')(app);
         // require('./data/routes/kolam.route.js')(app);
         // require('./data/routes/feeder.route.js')(app);
         // require('./data/routes/jadwal.route.js')(app);

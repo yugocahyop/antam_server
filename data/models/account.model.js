@@ -13,6 +13,8 @@ const AppSchema = mongoose.Schema({
     tokenExpire: String,
     // role: String,
    phone: String,
+   role: String,
+   isAdmin: Boolean,
 });
 
 module.exports = mongoose.model("Account", AppSchema);

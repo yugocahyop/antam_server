@@ -55,7 +55,7 @@ exports.create = async (res, db, body, check, inputsList, struct, name)=>{
 //   return string.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&');
 // }
 
-exports.find = async (res, db, query, find, sort)=>{
+exports.find = async (res, db, query, find, sort, projection)=>{
 
   try {
 
@@ -81,7 +81,7 @@ exports.find = async (res, db, query, find, sort)=>{
   
 
   const count = await db.count(find).exec();
-  const history = await db.find(find).sort(sort).skip(o|| 0).limit(l|| count).exec();
+  const history = await db.find(find, projection ?? {__v:0}).sort(sort).skip(o|| 0).limit(l|| count).exec();
 
   
 
