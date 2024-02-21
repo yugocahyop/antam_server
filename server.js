@@ -51,37 +51,37 @@ const dotenv = require('dotenv');
 
 
         client.on("connect", () => {
-          client.subscribe("antam/device", (err) => {
+          client.subscribe("antam/device",  {qos: 1}, (err) => {
             if(err){
               console.log(err);
             }
           });
 
-          client.subscribe("antam/device/node", (err) => {
+          client.subscribe("antam/device/node", {qos: 1}, (err) => {
             if(err){
               console.log(err);
             }
           });
 
-          client.subscribe("antam/status", (err) => {
+          client.subscribe("antam/status",  {qos: 1}, (err) => {
             if(err){
               console.log(err);
             }
           });
 
-          client.subscribe("antam/statistic", (err) => {
+          client.subscribe("antam/statistic", {qos: 1}, (err) => {
             if(err){
               console.log(err);
             }
           });
 
-          client.subscribe("antam/statusNode", (err) => {
+          client.subscribe("antam/statusNode", {qos: 1}, (err) => {
             if(err){
               console.log(err);
             }
           });
 
-          client.subscribe("antam/statusnode", (err) => {
+          client.subscribe("antam/statusnode",  {qos: 1}, (err) => {
             if(err){
               console.log(err);
             }
@@ -133,12 +133,12 @@ const dotenv = require('dotenv');
           
           if(topic == "antam/statusNode" || topic == "antam/statusnode"){
             // console.log(message);
-            let { timetamp, tangki, node, status} = JSON.parse(message.toString());
+            let { timeStamp, tangki, node, status} = JSON.parse(message.toString());
 
             // console.log(tangkiData[0]);
 
 
-            if(typeof timestamp === 'undefined'){
+            if(typeof timeStamp === 'undefined'){
               console.log("no timeStamp ");
               return;
             }else if(isNaN(timeStamp)){
@@ -781,6 +781,7 @@ const dotenv = require('dotenv');
         require('./data/routes/diagnostic.route.js')(app);
         require('./data/routes/statistic.route.js')(app);
         require('./data/routes/user.route.js')(app);
+        require('./data/routes/call.route.js')(app);
         // require('./data/routes/kolam.route.js')(app);
         // require('./data/routes/feeder.route.js')(app);
         // require('./data/routes/jadwal.route.js')(app);

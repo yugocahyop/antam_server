@@ -20,7 +20,7 @@ exports.inputListMontioring = inputList;
 exports.create =  async(req, res) => {
 
     
-    controller.create(res, Diagnostic, req.body, { }, inputList, struct , "Diagnostic" );
+    controller.create(res, Diagnostic, req.body, null, inputList, struct , "Diagnostic" );
 }
 
 exports.update =  async(req, res) => {
