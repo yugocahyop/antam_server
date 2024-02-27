@@ -1,5 +1,4 @@
 const User = require("../models/account.model.js");
-const Log = require("../models/log.model.js");
 
 const controller = require("./controller.js");
 
@@ -18,16 +17,12 @@ exports.update =  async(req, res) => {
 
     const verify = jwt.verify(token, process.env.TOKEN_KEY);
 
-    let emailCheck = "";
-
     if(!verify){
 
         res.status(403).send({error: "access forbidden"});
         return;
        }else{
          const usr = await User.findOne({email: verify.email,}, {email:1, isAdmin:1}).exec();
-
-         emailCheck = verify.email;
 
         // res.status(200).send(usr);
          if (!usr.isAdmin){
@@ -36,26 +31,8 @@ exports.update =  async(req, res) => {
          }
        }
 
-    let log = (db)=>{
-      let nl = new Log({
-        user_id: req.params.id,
-        // ip: String,
-        // mac: String,
-        email: emailCheck,
-        datetime: Date.now(),
-        table: "Account",
-        data_id: db._id,
-        data_name: `${emailCheck} mengubah ${db.email} menjadi ${req.body.role} `,
-        value: req.body.role,
-        prev_value: db.role,
-        activity: "update"
-      });
-
-      nl.save();
-    };
-
    
-    controller.update(res, User, req.body, req.params.id, ["role", "isAdmin"], {role: "String", isAdmin: "Boolean" } , "Monitoring", log );
+    controller.update(res, User, req.body, req.params.id, ["role", "isAdmin"], {role: "String", isAdmin: "Boolean" } , "Monitoring" );
     
 }
 

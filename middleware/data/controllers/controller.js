@@ -22,7 +22,7 @@ function validate(body, inputList, struct, res ){
   return true;
 }
 
-exports.create = async (res, db, body, check, inputsList, struct, name, log)=>{
+exports.create = async (res, db, body, check, inputsList, struct, name)=>{
     
 
     // let {event_name, jenis_relay, nama_alat} = body;
@@ -41,10 +41,6 @@ exports.create = async (res, db, body, check, inputsList, struct, name, log)=>{
       return;
     }
     const re = new db(body);
-
-    if(typeof log !== "undefined"){
-      log(re);
-     }
 
     re.save().then((data)=>{
       // console.log(data);
@@ -149,7 +145,7 @@ exports.findOne = async (res, db, query, find, sort)=>{
   
 }
 
-exports.update = async (res, db, body, id, inputsList, struct, log) =>{
+exports.update = async (res, db, body, id, inputsList, struct,) =>{
   
     
    
@@ -167,10 +163,6 @@ exports.update = async (res, db, body, id, inputsList, struct, log) =>{
     const val = inputsList[index];
     db2[val] = body[val];
 
-   }
-
-   if(typeof log !== "undefined"){
-    log(db2);
    }
 
    
@@ -211,20 +203,15 @@ exports.updateNoRes = async ( db, body, id, inputsList,) =>{
   })
 }
 
-exports.delete = async ( res, db, id, log) =>{
-
-  
+exports.delete = async ( res, db, id) =>{
  
-  if(typeof log !== "undefined"){
-    let db2 =await  db.find({_id : ObjectId(id)}).exec();
-    log(db2);
-   }
+   
    
   await  db.findByIdAndRemove( ObjectId( id)).exec().then(()=>{
 
     res.send({message: "ok"});
     
-    
+
         
 
     }).catch((err)=>{

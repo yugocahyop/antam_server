@@ -45,7 +45,7 @@ exports.find = async(req, res ) => {
 
     let find = to ? {$and: [{timeStamp: {$gte: from}}, {timeStamp: {$lte: to}} ]} : {timeStamp: {$gte: from}};
 
-    controller.find(res, Monitoring, req.query, find, {timeStamp_server:-1});
+    controller.find(res, Monitoring, req.query, find, {timeStamp:-1});
 }
 
 exports.findLast = async(req, res ) => {
