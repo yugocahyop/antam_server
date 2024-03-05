@@ -48,6 +48,27 @@ const dotenv = require('dotenv');
 
         console.log(`Primary ${process.pid} is running`);
 
+        const cron = require('node-cron');
+
+    cron.schedule("0 0 0 * * *", async ()=>{
+      const Monitoring = require("./data/models/monitoring.model.js");
+      const Alarm = require("./data/models/alarm.model.js");
+      const Diagnostic = require("./data/models/diagnostic.model.js");
+      const Statistic = require("./data/models/statistic.model.js");
+      const Status = require("./data/models/status.model.js");
+
+      console.log("delete execute");
+
+      
+      Monitoring.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
+      Alarm.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
+      Diagnostic.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
+      Statistic.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
+      Status.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
+
+      
+    });
+
 
 
        let alarmTeganganList= [];
@@ -824,6 +845,8 @@ const dotenv = require('dotenv');
           }
           // client.end();
         });
+
+        
         
         
         
@@ -843,6 +866,7 @@ const dotenv = require('dotenv');
     // async function syncDb(){
         
     //   }
+    
   
     
 
