@@ -1,5 +1,5 @@
 const User = require("../models/account.model.js");
-const Log = require("../models/log.model.js");
+
 
 const controller = require("./controller.js");
 
@@ -18,7 +18,9 @@ exports.update =  async(req, res) => {
 
     const verify = jwt.verify(token, process.env.TOKEN_KEY);
 
-    let emailCheck = "";
+    // let emailCheck = "";
+
+    let user_id = "";
 
     if(!verify){
 
@@ -27,7 +29,8 @@ exports.update =  async(req, res) => {
        }else{
          const usr = await User.findOne({email: verify.email,}, {email:1, isAdmin:1}).exec();
 
-         emailCheck = verify.email;
+        //  emailCheck = verify.email;
+         user_id = usr._id + "";
 
         // res.status(200).send(usr);
          if (!usr.isAdmin){
@@ -36,17 +39,18 @@ exports.update =  async(req, res) => {
          }
        }
 
-    let log = (db)=>{
+    let log = function (db, body, user_id, verify){
+      const Log = require("../models/log.model.js");
       let nl = new Log({
-        user_id: req.params.id,
+        user_id: user_id,
         // ip: String,
         // mac: String,
-        email: emailCheck,
+        email: verify.email,
         datetime: Date.now(),
         table: "Account",
         data_id: db._id,
-        data_name: `${emailCheck} mengubah ${db.email} menjadi ${req.body.role} `,
-        value: req.body.role,
+        data_name: `${verify.email} mengubah role Akun "${db.email}" dari "${db.role}"  menjadi "${body.role}" `,
+        value: body.role,
         prev_value: db.role,
         activity: "update"
       });
@@ -55,7 +59,7 @@ exports.update =  async(req, res) => {
     };
 
    
-    controller.update(res, User, req.body, req.params.id, ["role", "isAdmin"], {role: "String", isAdmin: "Boolean" } , "Monitoring", log );
+    controller.update(res, User, req.body, req.params.id, ["role", "isAdmin"], {role: "String", isAdmin: "Boolean" } ,  log, user_id, verify );
     
 }
 

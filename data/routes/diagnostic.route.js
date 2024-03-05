@@ -7,6 +7,8 @@ module.exports = (app) => {
     app.post("/diagnostic/find",auth, App.find);
 
     app.post("/diagnostic/find/last",auth, App.findLast);
+    app.post("/diagnostic/toggle",auth, App.toogleNode);
+
   
 
   

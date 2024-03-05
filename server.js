@@ -24,6 +24,7 @@ mongoose.Promise = global.Promise;
 
 const numCPUs = os.cpus().length -1;
 const dotenv = require('dotenv');
+// const { JSONParser } = require('formidable/parsers/index.js');
 
  dotenv.config();
 
@@ -49,7 +50,8 @@ const dotenv = require('dotenv');
 
 
 
-       
+       let alarmTeganganList= [];
+       let alarmArusList = [];
 
         
 
@@ -57,7 +59,14 @@ const dotenv = require('dotenv');
         const client = mqtt.connect("mqtt://202.148.1.57:7007", {password: "xirka@30", username: "xirka"});
 
 
-        client.on("connect", () => {
+        client.on("connect", async () => {
+          let diag = require("./data/models/diagnostic.model.js");
+
+          const {listAlarmTegangan, listAlarmArus} = await diag.findOne({}).sort({timeStamp_server: -1}).exec();
+
+          alarmArusList = listAlarmArus ?? [];
+          alarmTeganganList = listAlarmTegangan ?? [];
+
           client.subscribe("antam/device",  {qos: 1}, (err) => {
             if(err){
               console.log(err);
@@ -240,14 +249,69 @@ const dotenv = require('dotenv');
               console.log("no status ");
               return;
             }
+
+            const statusString = status + "";
+            const dateNow = Date.now();
+
+            if(statusString.search("alarmArusTinggi") != -1 || statusString.search("alarmArusRendah") != -1 || statusString.search("alarmTegangan") != -1 ||statusString.search("alarmSuhuTinggi") != -1||
+            statusString.search("alarmSuhuRendah") != -1 || statusString.search("alarmPhTinggi") != -1 || statusString.search("alarmPhRendah") != -1 || statusString === "alarm"){
+              const Alarm = require("./data/models/alarm.model.js");
+
+              if(statusString.search("Arus") != -1 || statusString === "alarm" ){
+                let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
+
+                if(aAl.length == 0){
+                  alarmArusList.push([tangki, node]);
+                }
+              } 
+                if(statusString.search("Tegangan") != -1 || statusString === "alarm" ){
+                let aAl = alarmTeganganList.filter((e)=> e[0] == tangki && e[1] == node);
+
+                if(aAl.length == 0){
+                  alarmTeganganList.push([tangki, node]);
+                }
+              }
+
+              const na = new Alarm({
+                tangki: tangki,
+                node: node,
+                timeStamp: timeStamp,
+                timeStamp_server: dateNow ,
+                status: status,
+                
+              });
+
+              na.save();
+
+             
+            }else {
+              let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
+              let aTl = alarmTeganganList.filter((e)=> e[0] == tangki && e[1] == node);
+
+              if(aAl.length > 0){
+                alarmArusList.splice (alarmArusList.indexOf(aAl[0]), 1);
+              }
+
+              if(aTl.length > 0 ){
+                alarmTeganganList.splice (alarmTeganganList.indexOf(aTl[0]), 1);
+              }
+            }
             
             diagData[tangki -1][node -1]["status"] = status;
             diagData[tangki -1][node -1]["lastUpdated"] = timeStamp * 1000;
 
+            client.publish("antam/status", JSON.stringify({ 
+              timeStamp: Date.now(),
+            status: true,
+            alarmTegangan: alarmTeganganList.length > 0,
+            alarmArus: alarmArusList.length > 0}), {qos: 1} )
+
             let nMonit = new diag({
               timeStamp: timeStamp,
-              timeStamp_server: Date.now(),
-              diagnosticData: diagData
+              timeStamp_server: dateNow,
+              diagnosticData: diagData,
+              listAlarmArus: alarmArusList,
+              listAlarmTegangan: alarmTeganganList
             });
 
             nMonit.save().catch((err)=>{
@@ -817,8 +881,8 @@ const dotenv = require('dotenv');
         require('./data/routes/statistic.route.js')(app);
         require('./data/routes/user.route.js')(app);
         require('./data/routes/call.route.js')(app);
-        // require('./data/routes/kolam.route.js')(app);
-        // require('./data/routes/feeder.route.js')(app);
+        require('./data/routes/log.route.js')(app);
+        require('./data/routes/alarm.route.js')(app);
         // require('./data/routes/jadwal.route.js')(app);
      
 

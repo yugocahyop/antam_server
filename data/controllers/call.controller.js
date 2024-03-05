@@ -40,6 +40,8 @@ exports.create =  async(req, res) => {
 
     const verify = jwt.verify(token, process.env.TOKEN_KEY);
 
+    let user_id = "";
+
     if(!verify){
 
         res.status(403).send({error: "access forbidden"});
@@ -47,15 +49,38 @@ exports.create =  async(req, res) => {
        }else{
          const usr = await User.findOne({email: verify.email,}, {email:1, isAdmin:1}).exec();
 
+        //  console.log(usr);
+
+         user_id = usr._id + "";
+
         // res.status(200).send(usr);
          if (!usr.isAdmin){
             res.status(403).send({error: "access forbidden"});
             return;
          }
-       }
+    }
+       let log = function (db, body, user_id,verify){
+        const Log = require("../models/log.model.js");
+        let nl = new Log({
+          user_id: user_id ,
+          // ip: String,
+          // mac: String,
+          email: verify.email,
+          datetime: Date.now(),
+          table: "Call",
+          data_id: db._id + "",
+          data_name: `${verify.email} membuat kontak "${db.name}" `,
+          value: body,
+          prev_value: {},
+          activity: "create"
+        });
+  
+        nl.save();
+      };
+  
 
     
-    controller.create(res, Call, req.body, null, inputList, struct , "Call" );
+    controller.create(res, Call, req.body, null, inputList, struct , "Call",log, user_id,verify );
 }
 
 exports.update =  async(req, res) => {
@@ -71,12 +96,16 @@ exports.update =  async(req, res) => {
 
     const verify = jwt.verify(token, process.env.TOKEN_KEY);
 
+    let user_id = "";
+
     if(!verify){
 
         res.status(403).send({error: "access forbidden"});
         return;
        }else{
          const usr = await User.findOne({email: verify.email,}, {email:1, isAdmin:1}).exec();
+
+         user_id = usr._id + "";
 
         // res.status(200).send(usr);
          if (!usr.isAdmin){
@@ -85,13 +114,75 @@ exports.update =  async(req, res) => {
          }
        }
    
+       let log = function (db, body, user_id, verify){
+        const Log = require("../models/log.model.js");
+       
+        // console.log(db);
+
+        // console.log(body);
+
+        if(db.name != body.name){
+            let nl = new Log({
+                user_id: user_id ,
+                // ip: String,
+                // mac: String,
+                email: verify.email,
+                datetime: Date.now(),
+                table: "Call",
+                data_id: db._id + "",
+                data_name: `${verify.email} mengubah nama kontak emergency dari "${db.name}" menjadi "${body.name}" `,
+                value: body.name,
+                prev_value: db.name,
+                activity: "update"
+              });
+        
+              nl.save();
+        }
+
+        if(db.call != body.call){
+            let nl = new Log({
+                user_id: user_id ,
+                // ip: String,
+                // mac: String,
+                email: verify.email,
+                datetime: Date.now(),
+                table: "Call",
+                data_id: db._id + "",
+                data_name: `${verify.email} mengubah nomor telphon kontak emergency  "${db.name}" dari "${db.call}" menjadi "${body.call}" `,
+                value: body.call,
+                prev_value: db.call,
+                activity: "update"
+              });
+        
+              nl.save();
+        }
+
+        if(db.role != body.role){
+            let nl = new Log({
+                user_id: user_id ,
+                // ip: String,
+                // mac: String,
+                email: verify.email,
+                datetime: Date.now(),
+                table: "Call",
+                data_id: db._id + "",
+                data_name: `${verify.email} mengubah role kontak emergency "${db.name}" dari "${db.role}" menjadi "${body.role}" `,
+                value: body.role,
+                prev_value: db.role,
+                activity: "update"
+              });
+        
+              nl.save();
+        }
+        
+      };
     
 
   
     // console.log(f);
 
    
-    controller.update(res, Call, req.body, req.params.id, inputList, struct , "Call" );
+    controller.update(res, Call, req.body, req.params.id, inputList, struct ,  log, user_id,verify);
     
 }
 
@@ -129,12 +220,16 @@ exports.delete = async(req, res) =>{
 
     const verify = jwt.verify(token, process.env.TOKEN_KEY);
 
+    let user_id = "";
+
     if(!verify){
 
         res.status(403).send({error: "access forbidden"});
         return;
        }else{
          const usr = await User.findOne({email: verify.email,}, {email:1, isAdmin:1}).exec();
+
+         user_id = usr._id + "";
 
         // res.status(200).send(usr);
          if (!usr.isAdmin){
@@ -143,11 +238,30 @@ exports.delete = async(req, res) =>{
          }
        }
 
+       let log = function (db, body, user_id,verify){
+        const Log = require("../models/log.model.js");
+        let nl = new Log({
+          user_id: user_id ,
+          // ip: String,
+          // mac: String,
+          email: verify.email,
+          datetime: Date.now(),
+          table: "Call",
+          data_id: db._id,
+          data_name: `${verify.email} menghapus kontak "${db.name}" `,
+          value: body,
+          prev_value: db,
+          activity: "delete"
+        });
+  
+        nl.save();
+      };
+
    
 
     // const f = await Call.findOne({user_id: user_id, mac: mac}).exec();
 
-    controller.delete(res, Call, req.params.id);
+    controller.delete(res, Call, req.params.id, log, user_id, verify);
 
     
 
