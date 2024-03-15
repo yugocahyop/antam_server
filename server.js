@@ -243,7 +243,7 @@ const dotenv = require('dotenv');
               }
             }
 
-            console.log(JSON.parse(message.toString()));
+            // console.log(JSON.parse(message.toString()));
 
 
          
@@ -357,7 +357,7 @@ const dotenv = require('dotenv');
 
             // console.log(tangkiData[0]);
 
-            console.log(JSON.parse(message.toString()));
+            // console.log(JSON.parse(message.toString()));
 
 
             if(typeof timeStamp === 'undefined'){

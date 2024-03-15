@@ -18,7 +18,8 @@ module.exports = (app) => {
     app.get("/auth/refresh", App.refresh );
 
     app.get("/account/activate/:activeToken", App.activate);
-    app.post("/account/changepassword/:token", App.changePassword);
+    app.post("/account/changepassword", App.changePassword);
+    app.post("/account/forgetpassword", App.otp);
   
    
   };

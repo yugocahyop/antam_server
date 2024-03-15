@@ -14,6 +14,8 @@ const AppSchema = mongoose.Schema({
     // role: String,
    phone: String,
    role: String,
+   otp: String,
+   otpExpire: Number,
    isAdmin: Boolean,
 });
 

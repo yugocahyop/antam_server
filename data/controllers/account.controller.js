@@ -142,13 +142,33 @@ exports.forget = async (req, res) => {
 
 exports.changePassword = async (req, res) => {
   
-  const token = req.body.token || req.params.token;
-  const pass = req.body.password;
-  const passCon = req.body.passwordCon;
+  const tokenBearer = req.headers.authorization + "";
+       
+  const token = tokenBearer.replace("Bearer ", "");
 
-  if(pass !== passCon){
+  const pass = req.body.pass ?? "";
+  const otp = req.body.otp ?? "";
+  const nPass = req.body.nPassword;
+  const passCon = req.body.nPasswordCon;
+  const email = req.body.email;
+
+  // if(!pass){
+  //   return res.status(400).send({error: "password di perlukan"});
+  // }
+
+  if(!nPass){
+    return res.status(400).send({error: "password baru di perlukan"});
+  }
+
+  if(!nPass){
+    return res.status(400).send({error: "password konfirmasi di perlukan"});
+  }
+  
+  
+
+  if(nPass !== passCon){
     return res.status(400).send(
-      {error : "password confirmation did not match"}
+      {error : "password konfirmasi tidak sama"}
     )
   }
 
@@ -160,17 +180,40 @@ exports.changePassword = async (req, res) => {
     }
 
     try {
+
+      let username = email ?? "";
     
-      const decoded = jwt.verify(token.replace("Bearer ", ""), TOKEN_KEY);
-      const username = decoded.username;
-
-      const acc = await Account.findOne({username: username}).exec();
-
-      if(acc){
-        acc.password = sha256(pass);
+      if(otp === ""){
+        const decoded = jwt.verify(token, TOKEN_KEY);
+         username = decoded.email; 
+      }
       
 
-        acc.save().then((data)=>{
+      const acc = await Account.findOne({email: username}).exec();
+
+      // console.log(acc);
+      // console.log(sha256( pass)+"");
+
+      if(pass === ""){
+        if((sha256( decode(otp))+ "")  !== (acc.otp + "")){
+          return res.status(401).send({error: "OTP salah"});
+        }
+
+        if(acc.otpExpire <= Date.now()){
+          return res.status(401).send({error: "OTP telah lewat batas waktu (5 menit)"});
+        }
+      }else{
+        if((sha256( decode(pass))+ "")  !== (acc.password + "")){
+          return res.status(401).send({error: "Password lama salah"});
+        }
+      }
+
+    
+      if(acc){
+        acc.password = sha256(decode(nPass));
+      
+
+        acc.save().then(()=>{
           return res.status(200).send({message: "Ok"});
         }).catch((err)=>{
 
@@ -373,13 +416,7 @@ exports.register = async(req, res) => {
     return;
     }
 
-    const acc3 = await Account.findOne({email: req.body.email })
-    .catch((err) => {
-      return res.status(500).send({
-          message:
-            err.message || " error ",
-        });
-    });
+    const acc3 = await Account.findOne({email: req.body.email }).exec();
 
     // const acc2 = await Account.findOne({username: req.body.username })
     // .catch((err) => {
@@ -432,11 +469,37 @@ exports.register = async(req, res) => {
       var link = url
       + acc.activeToken;
 
+    //   mailer({
+    //     to: req.body.email,
+    //     subject: 'Antam activation link',
+    //     html: 'Please click <a href="' + link + '"> here </a> to activate your account.'
+    // });
+
+    var fs = require('fs');
+
+    var path = require('path');
+
+    var relativePath = path.join(__dirname, "..", "..", 'views', 'email.html');
+
+
+    fs.readFile(relativePath, (err, data) => {
+      if(err){
+        console.log(err);
+        return;
+      }
+      let html = data.toString().replace("replace-me-please", link);
+
+      for (let index = 0; index < 2; index++) {
+         html = html.toString().replace("replace-me-please", link);
+        
+      }
       mailer({
         to: req.body.email,
-        subject: 'Antam activation link',
-        html: 'Please click <a href="' + link + '"> here </a> to activate your account.'
-    });
+        subject: 'Antam Monitoring Activation ',
+        html: html
+    }); 
+    // fs.close();
+  });
 
     
     acc.save()
@@ -452,6 +515,93 @@ exports.register = async(req, res) => {
   });
 
   
+};
+
+exports.otp = async(req, res) => {
+    
+
+  const { email} = req.body;
+
+  
+
+  if(!email){
+    res.status(400).send({
+      error:
+          "email di perlukan",
+  });
+  return;
+  }
+
+  
+
+  const acc3 = await Account.findOne({email: email }).exec();
+
+  // const acc2 = await Account.findOne({username: req.body.username })
+  // .catch((err) => {
+  //   return res.status(500).send({
+  //     message:
+  //       err.message || " error ",
+  //   });
+  // });
+
+
+  // if(acc2){
+  //   return res.status(400).send({
+  //         error:
+  //             "username had already been registered",
+  //     });
+  // }
+
+  // console.log(acc3);
+
+
+  if(!acc3){
+    return res.status(400).send({
+        error:
+            "Email belum terdaftar",
+    });
+}
+
+ const one = Math.floor(Math.random() * 10);
+ const two = Math.floor(Math.random() * 10);
+ const three = Math.floor(Math.random() * 10);
+ const four = Math.floor(Math.random() * 10);
+
+ const otp = `${one}${two}${three}${four}`;
+
+  const hashedOtp = sha256(otp);
+
+
+  acc3.otp = hashedOtp;
+  acc3.otpExpire = Date.now() + (60000 * 5);
+
+  acc3.save();
+
+  var fs = require('fs');
+
+  var path = require('path');
+
+  var relativePath = path.join(__dirname, "..", "..", 'views', 'otp.html');
+
+
+  fs.readFile(relativePath, (err, data) => {
+    if(err){
+      console.log(err);
+      return;
+    }
+    let html = data.toString().replace("otp-replace", otp);
+
+    
+    mailer({
+      to: req.body.email,
+      subject: 'Antam Monitoring kode OTP ',
+      html: html
+  }); 
+  // fs.close();
+});
+
+res.status(200).send({msg: "ok"});
+
 };
 
 // Retrieve all messages from the database.
