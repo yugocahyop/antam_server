@@ -38,11 +38,15 @@ exports.create =  async(req, res) => {
 
     const jwt = require("jsonwebtoken");
 
-    const verify = jwt.verify(token, process.env.TOKEN_KEY);
+    
 
     let user_id = "";
 
-    if(!verify){
+    try {
+
+      const verify = jwt.verify(token, process.env.TOKEN_KEY);
+
+      if(!verify){
 
         res.status(403).send({error: "access forbidden"});
         return;
@@ -77,10 +81,19 @@ exports.create =  async(req, res) => {
   
         nl.save();
       };
+
+      controller.create(res, Call, req.body, null, inputList, struct , "Call",log, user_id,verify );
+      
+    } catch (error) {
+      res.status(403).send({error: "access forbidden"});
+      return;
+    }
+
+    
   
 
     
-    controller.create(res, Call, req.body, null, inputList, struct , "Call",log, user_id,verify );
+    
 }
 
 exports.update =  async(req, res) => {
@@ -94,11 +107,15 @@ exports.update =  async(req, res) => {
 
     const jwt = require("jsonwebtoken");
 
-    const verify = jwt.verify(token, process.env.TOKEN_KEY);
+    
 
     let user_id = "";
 
-    if(!verify){
+    try {
+
+      const verify = jwt.verify(token, process.env.TOKEN_KEY);
+
+      if(!verify){
 
         res.status(403).send({error: "access forbidden"});
         return;
@@ -175,14 +192,23 @@ exports.update =  async(req, res) => {
               nl.save();
         }
         
-      };
+      }
+
+      controller.update(res, Call, req.body, req.params.id, inputList, struct ,  log, user_id,verify);
+      
+    } catch (error) {
+      res.status(403).send({error: "access forbidden"});
+      return;
+    }
+
+    
     
 
   
     // console.log(f);
 
    
-    controller.update(res, Call, req.body, req.params.id, inputList, struct ,  log, user_id,verify);
+    
     
 }
 
@@ -218,11 +244,15 @@ exports.delete = async(req, res) =>{
 
     const jwt = require("jsonwebtoken");
 
-    const verify = jwt.verify(token, process.env.TOKEN_KEY);
+    
 
     let user_id = "";
 
-    if(!verify){
+    try {
+
+      const verify = jwt.verify(token, process.env.TOKEN_KEY);
+
+      if(!verify){
 
         res.status(403).send({error: "access forbidden"});
         return;
@@ -262,6 +292,13 @@ exports.delete = async(req, res) =>{
     // const f = await Call.findOne({user_id: user_id, mac: mac}).exec();
 
     controller.delete(res, Call, req.params.id, log, user_id, verify);
+      
+    } catch (error) {
+      res.status(403).send({error: "access forbidden"});
+      return;
+    }
+
+    
 
     
 

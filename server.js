@@ -278,14 +278,14 @@ const dotenv = require('dotenv');
             statusString.search("alarmSuhuRendah") != -1 || statusString.search("alarmPhTinggi") != -1 || statusString.search("alarmPhRendah") != -1 || statusString === "alarm"){
               const Alarm = require("./data/models/alarm.model.js");
 
-              if(statusString.search("Arus") != -1 || statusString === "alarm" ){
+              if(statusString.search("Arus") != -1 || (statusString.search("Tegangan") == -1 &&  statusString.search("alarm") != -1) ){
                 let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
 
                 if(aAl.length == 0){
                   alarmArusList.push([tangki, node]);
                 }
               } 
-                if(statusString.search("Tegangan") != -1 || statusString === "alarm" ){
+                if(statusString.search("Tegangan") != -1 || (statusString.search("Arus") == -1 &&  statusString.search("alarm") != -1) ){
                 let aAl = alarmTeganganList.filter((e)=> e[0] == tangki && e[1] == node);
 
                 if(aAl.length == 0){

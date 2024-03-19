@@ -16,11 +16,15 @@ exports.update =  async(req, res) => {
 
     const jwt = require("jsonwebtoken");
 
-    const verify = jwt.verify(token, process.env.TOKEN_KEY);
+    let user_id = "";
+
+    try {
+
+      const verify = jwt.verify(token, process.env.TOKEN_KEY);
 
     // let emailCheck = "";
 
-    let user_id = "";
+    
 
     if(!verify){
 
@@ -39,27 +43,36 @@ exports.update =  async(req, res) => {
          }
        }
 
-    let log = function (db, body, user_id, verify){
-      const Log = require("../models/log.model.js");
-      let nl = new Log({
-        user_id: user_id,
-        // ip: String,
-        // mac: String,
-        email: verify.email,
-        datetime: Date.now(),
-        table: "Account",
-        data_id: db._id,
-        data_name: `${verify.email} mengubah role Akun "${db.email}" dari "${db.role}"  menjadi "${body.role}" `,
-        value: body.role,
-        prev_value: db.role,
-        activity: "update"
-      });
+       let log = function (db, body, user_id, verify){
+        const Log = require("../models/log.model.js");
+        let nl = new Log({
+          user_id: user_id,
+          // ip: String,
+          // mac: String,
+          email: verify.email,
+          datetime: Date.now(),
+          table: "Account",
+          data_id: db._id,
+          data_name: `${verify.email} mengubah role Akun "${db.email}" dari "${db.role}"  menjadi "${body.role}" `,
+          value: body.role,
+          prev_value: db.role,
+          activity: "update"
+        });
+  
+        nl.save();
+      };
+  
+     
+      controller.update(res, User, req.body, req.params.id, ["role", "isAdmin"], {role: "String", isAdmin: "Boolean" } ,  log, user_id, verify );
+      
+    } catch (error) {
+      res.status(403).send({error: "access forbidden"});
+        return;
+    }
 
-      nl.save();
-    };
+    
 
-   
-    controller.update(res, User, req.body, req.params.id, ["role", "isAdmin"], {role: "String", isAdmin: "Boolean" } ,  log, user_id, verify );
+    
     
 }
 
@@ -82,18 +95,26 @@ exports.find = async(req, res ) => {
 
        const jwt = require("jsonwebtoken");
 
-       const verify = jwt.verify(token, process.env.TOKEN_KEY);
+       try {
+        const verify = jwt.verify(token, process.env.TOKEN_KEY);
 
-       if(!verify){
+        if(!verify){
 
-        res.status(403).send({error: "access forbidden"});
-        return;
-       }else{
-         const usr = await User.findOne({email: verify.email,}, {email:1, isAdmin:1}).exec();
-
-        res.status(200).send(usr);
-        return;
+          res.status(403).send({error: "access forbidden"});
+          return;
+         }else{
+           const usr = await User.findOne({email: verify.email,}, {email:1, isAdmin:1}).exec();
+  
+          res.status(200).send(usr);
+          return;
+         }
+       } catch (error) {
+          return res.status(403).send({error: "access forbidden"});
        }
+
+       
+
+
     }
    
     let find = qString === ""? {active: true} : {$or: [{email: {$regex: key, $options: "i"}}, {role: {$regex: key, $options: "i"}} ],  active: true} ;
