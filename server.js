@@ -77,7 +77,7 @@ const dotenv = require('dotenv');
         
 
         const mqtt = require("mqtt");
-        const client = mqtt.connect("mqtt://202.148.1.57:7007", {password: "xirka@30", username: "xirka"});
+        const client = mqtt.connect(`mqtt://${process.env.MQTT_IP}:${process.env.MQTT_PORT}`, {password: "xirka@30", username: "xirka"});
 
 
         client.on("connect", async () => {
@@ -127,8 +127,22 @@ const dotenv = require('dotenv');
           console.log("connected mqtt");
         });
 
+        let isTimeShift = false;
+
         client.on("message", async (topic, message) => {
           // message is Buffer
+
+          // const jsonData = JSON.parse(message.toString());
+
+          // if(jsonData.timeStamp){
+          //   console.log(jsonData.timeStamp + "");
+          //   // const dateNow = Date.now();
+          //   // const diff = ((dateNow /1000) - (jsonData.timeStamp )) ;
+          //   // if(( diff < 0 ? diff *-1: diff) > 5){
+          //   //   console.log(`timeSync execute ${diff}`);
+          //   //   client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: jsonData.timeStamp, timeShift: Math.floor(diff)}) )
+          //   // }
+          // }
           
 
           if(topic == "antam/device"){
@@ -172,6 +186,26 @@ const dotenv = require('dotenv');
             // console.log(message);
             let { timeStamp, tangki, node, status} = JSON.parse(message.toString());
             let diag = require("./data/models/diagnostic.model.js");
+
+            // const jsonData = JSON.parse(message.toString());
+
+          if(timeStamp){
+           
+            // console.log(timeStamp + "");
+            const dateNow = Date.now();
+            const diff = ((dateNow /1000) - timeStamp ) ;
+            // console.log(`diff ${diff}`)
+            // console.log(`dateNow ${dateNow/ 1000}`)
+            if(( diff > 5 || diff < -5) && !isTimeShift){
+              isTimeShift = true;
+              console.log(`timeSync execute ${diff}`);
+              client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}) );
+
+              setTimeout(()=>{
+                isTimeShift = false;
+              }, 30000)
+            }
+          }
 
             let diagData = [
               [
@@ -647,6 +681,46 @@ const dotenv = require('dotenv');
                   "energi": 0.0
                 },
               ],
+
+              [
+                {
+                  "sel": 1,
+                  "suhu": 0.0,
+                  "ph": 0.0,
+                },
+                {
+                  "sel": 2,
+                  "suhu": 0.0,
+                  "tegangan": 0.0,
+                  "arus": 0.0,
+                  "daya": 0.0,
+                  "energi": 0.0
+                },
+                {
+                  "sel": 3,
+                  "suhu": 0.0,
+                  "tegangan": 0.0,
+                  "arus": 0.0,
+                  "daya": 0.0,
+                  "energi": 0.0
+                },
+                {
+                  "sel": 4,
+                  "suhu": 0.0,
+                  "tegangan": 0.0,
+                  "arus": 0.0,
+                  "daya": 0.0,
+                  "energi": 0.0
+                },
+                {
+                  "sel": 5,
+                  "suhu": 0.0,
+                  "tegangan": 0.0,
+                  "arus": 0.0,
+                  "daya": 0.0,
+                  "energi": 0.0
+                },
+              ],
              
             ];
 
@@ -907,6 +981,7 @@ const dotenv = require('dotenv');
         require('./data/routes/call.route.js')(app);
         require('./data/routes/log.route.js')(app);
         require('./data/routes/alarm.route.js')(app);
+        require('./data/routes/setting.route.js')(app);
         // require('./data/routes/jadwal.route.js')(app);
      
 
