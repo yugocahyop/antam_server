@@ -79,9 +79,10 @@ const dotenv = require('dotenv');
         const mqtt = require("mqtt");
         const client = mqtt.connect(`mqtt://${process.env.MQTT_IP}:${process.env.MQTT_PORT}`, {password: "xirka@30", username: "xirka"});
 
+        let diag = require("./data/models/diagnostic.model.js");
 
         client.on("connect", async () => {
-          let diag = require("./data/models/diagnostic.model.js");
+         
 
           const {listAlarmTegangan, listAlarmArus} = await diag.findOne({}).sort({timeStamp_server: -1}).exec();
 
@@ -129,6 +130,12 @@ const dotenv = require('dotenv');
 
         let isTimeShift = false;
 
+         const monit = require("./data/models/monitoring.model.js");
+         const Alarm = require("./data/models/alarm.model.js");
+         const monitNode = require("./data/models/monitoringNode.model.js");
+         const Status = require("./data/models/status.model.js");
+         let statistic = require("./data/models/statistic.model.js");
+
         client.on("message", async (topic, message) => {
           // message is Buffer
 
@@ -168,7 +175,7 @@ const dotenv = require('dotenv');
               return;
             }
             
-            let monit = require("./data/models/monitoring.model.js");
+           
 
             let nMonit = new monit({
               timeStamp: timeStamp,
@@ -185,7 +192,7 @@ const dotenv = require('dotenv');
           if(topic == "antam/statusNode" || topic == "antam/statusnode"){
             // console.log(message);
             let { timeStamp, tangki, node, status} = JSON.parse(message.toString());
-            let diag = require("./data/models/diagnostic.model.js");
+            // let diag = require("./data/models/diagnostic.model.js");
 
             // const jsonData = JSON.parse(message.toString());
 
@@ -310,7 +317,7 @@ const dotenv = require('dotenv');
 
             if(statusString.search("alarmArusTinggi") != -1 || statusString.search("alarmArusRendah") != -1 || statusString.search("alarmTegangan") != -1 ||statusString.search("alarmSuhuTinggi") != -1||
             statusString.search("alarmSuhuRendah") != -1 || statusString.search("alarmPhTinggi") != -1 || statusString.search("alarmPhRendah") != -1 || statusString === "alarm"){
-              const Alarm = require("./data/models/alarm.model.js");
+              
 
               if(statusString.search("Arus") != -1 || (statusString.search("Tegangan") == -1 &&  statusString.search("alarm") != -1) ){
                 let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
@@ -417,11 +424,11 @@ const dotenv = require('dotenv');
               return;
             }
             
-            let monit = require("./data/models/monitoring.model.js");
-            let monitNode = require("./data/models/monitoringNode.model.js");
+           
+            
 
 
-            let monitData =  await monit.findOne({}).sort({timeStamp_server: -1}).exec();
+            let monitData =  (await monit.find({}).sort({timeStamp_server: -1}).limit(1).exec())[0];
             let node =  await monitNode.findOne({tangki: tangki, sel: sel}).exec();
 
             // console.log(monitData);
@@ -725,7 +732,23 @@ const dotenv = require('dotenv');
             ];
 
             if(monitData){
-              tangkiData = monitData.tangkiData;
+              // tangkiData = monitData.tangkiData;
+
+              for (let index = 0; index < monitData.tangkiData.length; index++) {
+                const e = monitData.tangkiData[index];
+
+                for (let index2 = 0; index2 < e.length; index2++) {
+                  const ee = e[index2];
+
+                  tangkiData[index][index2]["suhu"] = ee["suhu"];
+                  tangkiData[index][index2]["tegangan"] = ee["tegangan"];
+                  tangkiData[index][index2]["arus"] = ee["arus"];
+                  tangkiData[index][index2]["daya"] = ee["daya"];
+                  tangkiData[index][index2]["energi"] = ee["energi"];
+                  
+                }
+                
+              }
             }
             // else{
             //   let nMonit = new monit({
@@ -745,7 +768,12 @@ const dotenv = require('dotenv');
             selData.sel = sel;
 
             try{
-              tangkiData[tangki -1][sel-1]  = selData;
+              // tangkiData[tangki -1][sel-1]  = selData;
+              tangkiData[tangki -1][sel-1]["suhu"] = selData["suhu"];
+              tangkiData[tangki -1][sel-1]["tegangan"] = selData["tegangan"];
+              tangkiData[tangki -1][sel-1]["arus"] = selData["arus"];
+              tangkiData[tangki -1][sel-1]["daya"] = selData["daya"];
+              tangkiData[tangki -1][sel-1]["energi"] = selData["energi"];
             }catch(err){
 
             }
@@ -784,7 +812,7 @@ const dotenv = require('dotenv');
               "tangkiData": tangkiData
             }
 
-            client.publish("antam/device", JSON.stringify(payload));
+            client.publish("antam/device", JSON.stringify(payload), {qos: 2});
             
              // let nMonit = new monit({
             //   timeStamp: timeStamp,
@@ -826,9 +854,9 @@ const dotenv = require('dotenv');
               return;
             }
             
-            let monit = require("./data/models/status.model.js");
+            
 
-            let nMonit = new monit({
+            let nMonit = new Status({
               timeStamp: timeStamp,
               status: status,
               alarmArus: alarmArus,
@@ -885,12 +913,12 @@ const dotenv = require('dotenv');
             }
 
             
-            let monit = require("./data/models/statistic.model.js");
+            
 
             // // let stat = await monit.findOne({timeStamp: {$gt: 0 }}).sort({timeStamp_server : -1}).exec();
 
             // // if(!stat){
-              let nMonit = new monit({
+              let nMonit = new statistic({
                 timeStamp_server: Date.now(),
                 timeStamp: timeStamp,
                 totalWaktu: totalWaktu,
