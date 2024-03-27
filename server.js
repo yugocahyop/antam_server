@@ -73,6 +73,7 @@ const dotenv = require('dotenv');
 
        let alarmTeganganList= [];
        let alarmArusList = [];
+       let notificationList = [];
 
         
 
@@ -135,6 +136,31 @@ const dotenv = require('dotenv');
          const monitNode = require("./data/models/monitoringNode.model.js");
          const Status = require("./data/models/status.model.js");
          let statistic = require("./data/models/statistic.model.js");
+         const {messaging} = require("./utils/fcm.js");
+         const moment = require("moment")
+
+         function sendPushNotification  ( body, title, topic,data ){
+          const payload = {
+            notification: {
+                title: title,
+                body: body,
+                
+            },
+            topic: topic || "antam",
+            data: data ?? {}
+            // token: "eQiRNSTCJpu0p7LxCJPJzc:APA91bH_zWYUi61i1cdozoO9vWbIIOuwOo10FgQZwwMO6B2opg1hF-2j7eayMjDHKeQNoOCSvYFWq8_0BirFHh5RLGVLJsr_dNqAYtjV3OMUp_Jl8MYopYz6TqY_A4H_M7TnWFzq2phf",
+            };
+        
+            
+        
+        
+        messaging.send(payload)
+        .then(() => {
+            // console.log( "topic: " +(topic || "pln-rtd"))
+        }).catch(err =>{
+          console.log(err);
+        })
+      }
 
         client.on("message", async (topic, message) => {
           // message is Buffer
@@ -345,6 +371,44 @@ const dotenv = require('dotenv');
 
               na.save();
 
+              const now = moment().format('DD/MM/yyy hh:mm:ss') ;
+
+              let msgA = "";
+
+              if (statusString === "alarm") {
+                  
+                msgA = 
+                    `Terjadi masalah pada sel ${tangki} - ${node}`;
+              } else {
+                showMsg(data["tangki"], data["node"],
+                    "");
+                    msgA =
+                      `${statusString.search("Rendah") != -1? "Minimum" : "Maksimum"} ${statusString.replace("alarm", "").replace("Tinggi", "").replace("Rendah", "")} telah di lewati pada sel ${tangki} - ${node}`;
+                  }
+
+              if((notificationList.filter((e)=> e === msgA)) == 0){
+                // const el = [tangki, node];
+
+                notificationList.push(msgA);
+
+                setTimeout(()=>{
+                  
+                  notificationList.splice(notificationList.indexOf((notificationList.filter((e)=> e === msgA))[0]),1)
+                }, 60000 * 2);
+
+                if (statusString === "alarm") {
+                  
+                  sendPushNotification(
+                      msgA, `Antam Monitoring ${now}`, "antam-monitoring", {});
+                } else {
+                  showMsg(data["tangki"], data["node"],
+                      "");
+                      sendPushNotification(
+                        msgA, `Antam Monitoring ${now}`, "antam-monitoring", {});
+                    }
+              }
+
+              
              
             }else {
               let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
@@ -807,12 +871,21 @@ const dotenv = require('dotenv');
               })
             }
 
-            const payload = {
-              "timeStamp": timeStamp,
-              "tangkiData": tangkiData
-            }
+            // const payload = {
+            //   "timeStamp": timeStamp,
+            //   "tangkiData": tangkiData
+            // }
 
-            client.publish("antam/device", JSON.stringify(payload), {qos: 2});
+            let nMonit = new monit({
+              timeStamp: timeStamp,
+              timeStamp_server: Date.now(),
+              tangkiData: tangkiData
+            })
+
+            nMonit.save().catch((err)=>{
+              console.log(err);});
+
+            // client.publish("antam/device", JSON.stringify(payload), {qos: 2});
             
              // let nMonit = new monit({
             //   timeStamp: timeStamp,
