@@ -59,12 +59,13 @@ const dotenv = require('dotenv');
 
       console.log("delete execute");
 
+      const maxDate = 604800000 * 8;
       
-      Monitoring.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
-      Alarm.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
-      Diagnostic.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
-      Statistic.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
-      Status.deleteMany({timeStamp_server: {$lt: (Date.now() - 604800000)}}).exec();
+      Monitoring.deleteMany({timeStamp_server: {$lt: (Date.now() - maxDate)}}).exec();
+      Alarm.deleteMany({timeStamp_server: {$lt: (Date.now() - maxDate)}}).exec();
+      Diagnostic.deleteMany({timeStamp_server: {$lt: (Date.now() - maxDate)}}).exec();
+      Statistic.deleteMany({timeStamp_server: {$lt: (Date.now() - maxDate)}}).exec();
+      Status.deleteMany({timeStamp_server: {$lt: (Date.now() - maxDate)}}).exec();
 
       
     });
@@ -74,6 +75,306 @@ const dotenv = require('dotenv');
        let alarmTeganganList= [];
        let alarmArusList = [];
        let notificationList = [];
+
+       let tangkiData = [
+              
+    
+        [
+          {
+            "sel": 1,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 2,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 3,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 4,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 5,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+        ],
+        [
+          {
+            "sel": 1,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 2,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 3,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 4,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 5,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+        ],
+        [
+          {
+            "sel": 1,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 2,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 3,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 4,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 5,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+        ],
+        [
+          {
+            "sel": 1,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 2,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 3,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 4,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 5,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+        ],
+        [
+          {
+            "sel": 1,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 2,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 3,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 4,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 5,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+        ],
+        [
+          {
+            "sel": 1,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 2,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 3,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 4,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 5,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+        ],
+
+        [
+          {
+            "sel": 1,
+            "suhu": 0.0,
+            "ph": 0.0,
+          },
+          {
+            "sel": 2,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 3,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 4,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+          {
+            "sel": 5,
+            "suhu": 0.0,
+            "tegangan": 0.0,
+            "arus": 0.0,
+            "daya": 0.0,
+            "energi": 0.0
+          },
+        ],
+       
+      ];
+
+      
 
         
 
@@ -89,6 +390,28 @@ const dotenv = require('dotenv');
 
           alarmArusList = listAlarmArus ?? [];
           alarmTeganganList = listAlarmTegangan ?? [];
+
+          let monitData =  (await monit.find({}).sort({timeStamp_server: -1}).limit(1).exec())[0];
+
+          if(monitData){
+            // tangkiData = monitData.tangkiData;
+    
+            for (let index = 0; index < monitData.tangkiData.length; index++) {
+              const e = monitData.tangkiData[index];
+    
+              for (let index2 = 0; index2 < e.length; index2++) {
+                const ee = e[index2];
+    
+                tangkiData[index][index2]["suhu"] = ee["suhu"];
+                tangkiData[index][index2]["tegangan"] = ee["tegangan"];
+                tangkiData[index][index2]["arus"] = ee["arus"];
+                tangkiData[index][index2]["daya"] = ee["daya"];
+                tangkiData[index][index2]["energi"] = ee["energi"];
+                
+              }
+              
+            }
+          }
 
           client.subscribe("antam/device",  {qos: 1}, (err) => {
             if(err){
@@ -222,6 +545,10 @@ const dotenv = require('dotenv');
 
             // const jsonData = JSON.parse(message.toString());
 
+            if(tangki > 6 || node > 5){
+              return;
+            }
+
           if(timeStamp){
            
             // console.log(timeStamp + "");
@@ -229,7 +556,7 @@ const dotenv = require('dotenv');
             const diff = ((dateNow /1000) - timeStamp ) ;
             // console.log(`diff ${diff}`)
             // console.log(`dateNow ${dateNow/ 1000}`)
-            if(( diff > 5 || diff < -5) && !isTimeShift){
+            if(( diff > 5 ) && !isTimeShift){
               isTimeShift = true;
               console.log(`timeSync execute ${diff}`);
               client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}) );
@@ -492,328 +819,13 @@ const dotenv = require('dotenv');
             
 
 
-            let monitData =  (await monit.find({}).sort({timeStamp_server: -1}).limit(1).exec())[0];
+            
+
             let node =  await monitNode.findOne({tangki: tangki, sel: sel}).exec();
 
             // console.log(monitData);
 
-            let tangkiData = [
-              
-    
-              [
-                {
-                  "sel": 1,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 2,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 3,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 4,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 5,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-              ],
-              [
-                {
-                  "sel": 1,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 2,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 3,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 4,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 5,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-              ],
-              [
-                {
-                  "sel": 1,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 2,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 3,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 4,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 5,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-              ],
-              [
-                {
-                  "sel": 1,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 2,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 3,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 4,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 5,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-              ],
-              [
-                {
-                  "sel": 1,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 2,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 3,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 4,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 5,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-              ],
-              [
-                {
-                  "sel": 1,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 2,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 3,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 4,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 5,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-              ],
-
-              [
-                {
-                  "sel": 1,
-                  "suhu": 0.0,
-                  "ph": 0.0,
-                },
-                {
-                  "sel": 2,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 3,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 4,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-                {
-                  "sel": 5,
-                  "suhu": 0.0,
-                  "tegangan": 0.0,
-                  "arus": 0.0,
-                  "daya": 0.0,
-                  "energi": 0.0
-                },
-              ],
-             
-            ];
-
-            if(monitData){
-              // tangkiData = monitData.tangkiData;
-
-              for (let index = 0; index < monitData.tangkiData.length; index++) {
-                const e = monitData.tangkiData[index];
-
-                for (let index2 = 0; index2 < e.length; index2++) {
-                  const ee = e[index2];
-
-                  tangkiData[index][index2]["suhu"] = ee["suhu"];
-                  tangkiData[index][index2]["tegangan"] = ee["tegangan"];
-                  tangkiData[index][index2]["arus"] = ee["arus"];
-                  tangkiData[index][index2]["daya"] = ee["daya"];
-                  tangkiData[index][index2]["energi"] = ee["energi"];
-                  
-                }
-                
-              }
-            }
+            
             // else{
             //   let nMonit = new monit({
             //         timeStamp: timeStamp,
