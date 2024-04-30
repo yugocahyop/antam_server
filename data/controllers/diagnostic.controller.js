@@ -35,6 +35,57 @@ exports.update =  async(req, res) => {
     
 }
 
+exports.resetEnergi = async(req, res)=> {
+    // let{tangki, node, isActive} = req.body;
+
+    const tokenBearer = req.headers.authorization + "";
+       
+    const token = tokenBearer.replace("Bearer ", "");
+
+    const jwt = require("jsonwebtoken");
+
+    const verify = jwt.verify(token, process.env.TOKEN_KEY);
+
+    // let emailCheck = "";
+
+    let user_id = "";
+
+    if(!verify){
+
+        res.status(403).send({error: "access forbidden"});
+        return;
+       }else{
+        const User = require("../models/account.model.js");
+         const usr = await User.findOne({email: verify.email,}, {email:1, isAdmin:1}).exec();
+
+        //  emailCheck = verify.email;
+         user_id = usr._id + "";
+
+        // res.status(200).send(usr);
+        //  if (!usr.isAdmin){
+        //     res.status(403).send({error: "access forbidden"});
+        //     return;
+        //  }
+       }
+
+    const Log = require("../models/log.model.js");
+      let nl = new Log({
+        user_id: user_id,
+        // ip: String,
+        // mac: String,
+        email: verify.email,
+        datetime: Date.now(),
+        table: "Diagnostic",
+        data_id: null,
+        data_name: `${verify.email} mencoba mereset energi `,
+        // value: !isActive,
+        // prev_value: isActive,
+        activity: "update"
+      });
+
+      nl.save();
+}
+
 exports.toogleNode = async(req, res)=> {
     let{tangki, node, isActive} = req.body;
 
