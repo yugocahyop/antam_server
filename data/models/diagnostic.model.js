@@ -6,7 +6,10 @@ const AppSchema = mongoose.Schema({
  timeStamp_server:Number,
  diagnosticData: Array,
  listAlarmArus: Array,
- listAlarmTegangan: Array
+ listAlarmTegangan: Array,
+ listAlarmSuhu: Array,
+ listAlarmPh: Array,
+ 
 });
 
 module.exports = mongoose.model("Diagnostic", AppSchema);

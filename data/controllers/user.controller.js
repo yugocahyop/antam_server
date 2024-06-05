@@ -119,5 +119,5 @@ exports.find = async(req, res ) => {
    
     let find = qString === ""? {active: true} : {$or: [{email: {$regex: key, $options: "i"}}, {role: {$regex: key, $options: "i"}} ],  active: true} ;
 
-    controller.find(res, User, req.query, find, {timeStamp:-1}, {email: 1, isAdmin: 1, _id: 1});
+    controller.find(res, User, req.query, find, {email: 1}, {email: 1, isAdmin: 1, _id: 1});
 }

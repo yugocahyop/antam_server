@@ -74,6 +74,9 @@ const dotenv = require('dotenv');
 
        let alarmTeganganList= [];
        let alarmArusList = [];
+       let alarmSuhuList= [];
+       let alarmPhList = [];
+     
        let notificationList = [];
 
        let tangkiData = [
@@ -336,7 +339,7 @@ const dotenv = require('dotenv');
           {
             "sel": 1,
             "suhu": 0.0,
-            "ph": 0.0,
+            "pH": 0.0,
           },
           {
             "sel": 2,
@@ -386,10 +389,13 @@ const dotenv = require('dotenv');
         client.on("connect", async () => {
          
 
-          const {listAlarmTegangan, listAlarmArus} = await diag.findOne({}).sort({timeStamp_server: -1}).exec();
+          const {listAlarmTegangan, listAlarmArus, listAlarmSuhu, listAlarmPh} = await diag.findOne({}).sort({timeStamp_server: -1}).exec();
 
           alarmArusList = listAlarmArus ?? [];
           alarmTeganganList = listAlarmTegangan ?? [];
+          alarmSuhuList = listAlarmSuhu ?? [];
+          alarmPhList = listAlarmPh ?? [];
+          // alarmEnergiList = listAlarmEnergi ?? [];
 
           let monitData =  (await monit.find({}).sort({timeStamp_server: -1}).limit(1).exec())[0];
 
@@ -401,12 +407,21 @@ const dotenv = require('dotenv');
     
               for (let index2 = 0; index2 < e.length; index2++) {
                 const ee = e[index2];
+                if(index < 6){
+                  
     
-                tangkiData[index][index2]["suhu"] = ee["suhu"];
-                tangkiData[index][index2]["tegangan"] = ee["tegangan"];
-                tangkiData[index][index2]["arus"] = ee["arus"];
-                tangkiData[index][index2]["daya"] = ee["daya"];
-                tangkiData[index][index2]["energi"] = ee["energi"];
+                  tangkiData[index][index2]["suhu"] = ee["suhu"];
+                  tangkiData[index][index2]["tegangan"] = ee["tegangan"];
+                  tangkiData[index][index2]["arus"] = ee["arus"];
+                  tangkiData[index][index2]["daya"] = ee["daya"];
+                  tangkiData[index][index2]["energi"] = ee["energi"];
+                }else if( index ==6 && index2 == 0){
+                  tangkiData[index][index2]["pH"] = ee["pH"] ?? 0;
+                  tangkiData[index][index2]["suhu"] = ee["suhu"] ?? 0;
+                }else if (index==6 && index2 > 0) {
+                  break;
+                }
+                
                 
               }
               
@@ -545,7 +560,7 @@ const dotenv = require('dotenv');
 
             // const jsonData = JSON.parse(message.toString());
 
-            if(tangki > 6 || node > 5){
+            if(tangki > 6 || node > 5 || tangki <= 0 || node <= 0){
               return;
             }
 
@@ -556,14 +571,14 @@ const dotenv = require('dotenv');
             const diff = ((dateNow /1000) - timeStamp ) ;
             // console.log(`diff ${diff}`)
             // console.log(`dateNow ${dateNow/ 1000}`)
-            if(( diff > 5 ) && !isTimeShift){
+            if(( diff > 5 || diff < -5 ) && !isTimeShift){
               isTimeShift = true;
               console.log(`timeSync execute ${diff}`);
-              client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}) );
+              client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}), {qos: 2} );
 
               setTimeout(()=>{
                 isTimeShift = false;
-              }, 30000)
+              }, 10000)
             }
           }
 
@@ -672,20 +687,36 @@ const dotenv = require('dotenv');
             statusString.search("alarmSuhuRendah") != -1 || statusString.search("alarmPhTinggi") != -1 || statusString.search("alarmPhRendah") != -1 || statusString === "alarm"){
               
 
-              if(statusString.search("Arus") != -1 || (statusString.search("Tegangan") == -1 &&  statusString.search("alarm") != -1) ){
+              if(statusString.search("Arus") != -1 ||  statusString === "alarm") {
                 let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
 
                 if(aAl.length == 0){
                   alarmArusList.push([tangki, node]);
                 }
               } 
-                if(statusString.search("Tegangan") != -1 || (statusString.search("Arus") == -1 &&  statusString.search("alarm") != -1) ){
+                if(statusString.search("Tegangan") != -1 ||  statusString === "alarm") {
                 let aAl = alarmTeganganList.filter((e)=> e[0] == tangki && e[1] == node);
 
                 if(aAl.length == 0){
                   alarmTeganganList.push([tangki, node]);
                 }
               }
+
+              if(statusString.search("Suhu") != -1 ||  statusString === "alarm") {
+                let aAl = alarmSuhuList.filter((e)=> e[0] == tangki && e[1] == node);
+
+                if(aAl.length == 0){
+                  alarmSuhuList.push([tangki, node]);
+                }
+              }
+              if(statusString.search("Ph") != -1 ||  statusString === "alarm") {
+                let aAl = alarmPhList.filter((e)=> e[0] == tangki && e[1] == node);
+
+                if(aAl.length == 0){
+                  alarmPhList.push([tangki, node]);
+                }
+              }
+              
 
               const na = new Alarm({
                 tangki: tangki,
@@ -698,7 +729,7 @@ const dotenv = require('dotenv');
 
               na.save();
 
-              const now = moment().format('DD/MM/yyy hh:mm:ss') ;
+              const now = moment().format('DD/MM/yyy HH:mm:ss') ;
 
               let msgA = "";
 
@@ -707,8 +738,8 @@ const dotenv = require('dotenv');
                 msgA = 
                     `Terjadi masalah pada sel ${tangki} - ${node}`;
               } else {
-                showMsg(data["tangki"], data["node"],
-                    "");
+                // showMsg(data["tangki"], data["node"],
+                //     "");
                     msgA =
                       `${statusString.search("Rendah") != -1? "Minimum" : "Maksimum"} ${statusString.replace("alarm", "").replace("Tinggi", "").replace("Rendah", "")} telah di lewati pada sel ${tangki} - ${node}`;
                   }
@@ -726,12 +757,12 @@ const dotenv = require('dotenv');
                 if (statusString === "alarm") {
                   
                   sendPushNotification(
-                      msgA, `Antam Monitoring ${now}`, "antam-monitoring", {});
+                    `Antam Monitoring ${now}`, msgA, "antam-monitoring", {});
                 } else {
-                  showMsg(data["tangki"], data["node"],
-                      "");
+                  // showMsg(data["tangki"], data["node"],
+                  //     "");
                       sendPushNotification(
-                        msgA, `Antam Monitoring ${now}`, "antam-monitoring", {});
+                        `Antam Monitoring ${now}`, msgA, "antam-monitoring", {});
                     }
               }
 
@@ -740,6 +771,9 @@ const dotenv = require('dotenv');
             }else {
               let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
               let aTl = alarmTeganganList.filter((e)=> e[0] == tangki && e[1] == node);
+              let aSl = alarmSuhuList.filter((e)=> e[0] == tangki && e[1] == node);
+              let aDl = alarmPhList.filter((e)=> e[0] == tangki && e[1] == node);
+             
 
               if(aAl.length > 0){
                 alarmArusList.splice (alarmArusList.indexOf(aAl[0]), 1);
@@ -748,15 +782,31 @@ const dotenv = require('dotenv');
               if(aTl.length > 0 ){
                 alarmTeganganList.splice (alarmTeganganList.indexOf(aTl[0]), 1);
               }
+
+              if(aSl.length > 0 ){
+                alarmSuhuList.splice (alarmSuhuList.indexOf(aSl[0]), 1);
+              }
+
+              if(aDl.length > 0 ){
+                alarmPhList.splice (alarmPhList.indexOf(aDl[0]), 1);
+              }
+
+              // if(aEl.length > 0 ){
+              //   alarmEnergiList.splice (alarmEnergiList.indexOf(aEl[0]), 1);
+              // }
             }
             
             diagData[tangki -1][node -1]["status"] = status;
             diagData[tangki -1][node -1]["lastUpdated"] = timeStamp * 1000;
 
+            // console.log(`suhu : ${alarmSuhuList}`);
+
             client.publish("antam/status", JSON.stringify({ 
               timeStamp: Date.now(),
             status: true,
             alarmTegangan: alarmTeganganList.length > 0,
+            alarmSuhu: alarmSuhuList.length > 0,
+            alarmPh: alarmPhList.length > 0,
             alarmArus: alarmArusList.length > 0}), {qos: 1} )
 
             let nMonit = new diag({
@@ -764,7 +814,9 @@ const dotenv = require('dotenv');
               timeStamp_server: dateNow,
               diagnosticData: diagData,
               listAlarmArus: alarmArusList,
-              listAlarmTegangan: alarmTeganganList
+              listAlarmTegangan: alarmTeganganList,
+              listAlarmSuhu: alarmSuhuList,
+              listAlarmPh: alarmPhList
             });
 
             nMonit.save().catch((err)=>{
@@ -790,6 +842,24 @@ const dotenv = require('dotenv');
             // console.log(tangkiData[0]);
 
             // console.log(JSON.parse(message.toString()));
+
+            if( timeStamp   ){
+           
+              // console.log(timeStamp + "");
+              let dateNow = Date.now();
+              let diff = (dateNow /1000) - timeStamp  ;
+              // console.log(`diff ${diff}`)
+              // console.log(`dateNow ${dateNow/ 1000}`)
+              if(( diff > 5 || diff < -5 && !isTimeShift ) ){
+                isTimeShift = true;
+                console.log(`timeSync execute ${diff}`);
+                client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}), {qos: 2} );
+  
+                setTimeout(()=>{
+                  isTimeShift = false;
+                }, 10000)
+              }
+            }
 
 
             if(typeof timeStamp === 'undefined'){
@@ -845,11 +915,19 @@ const dotenv = require('dotenv');
 
             try{
               // tangkiData[tangki -1][sel-1]  = selData;
-              tangkiData[tangki -1][sel-1]["suhu"] = selData["suhu"];
-              tangkiData[tangki -1][sel-1]["tegangan"] = selData["tegangan"];
-              tangkiData[tangki -1][sel-1]["arus"] = selData["arus"];
-              tangkiData[tangki -1][sel-1]["daya"] = selData["daya"];
-              tangkiData[tangki -1][sel-1]["energi"] = selData["energi"];
+
+              if(tangki == 7 && sel ==1){
+                tangkiData[tangki -1][sel-1]["suhu"] = selData["suhu"];
+                 tangkiData[tangki -1][sel-1]["pH"] = selData["pH"];
+            
+              }else{
+                tangkiData[tangki -1][sel-1]["suhu"] = selData["suhu"];
+                tangkiData[tangki -1][sel-1]["tegangan"] = selData["tegangan"];
+                tangkiData[tangki -1][sel-1]["arus"] = selData["arus"];
+                tangkiData[tangki -1][sel-1]["daya"] = selData["daya"];
+                tangkiData[tangki -1][sel-1]["energi"] = selData["energi"];
+              }
+              
             }catch(err){
 
             }
