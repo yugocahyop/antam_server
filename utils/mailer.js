@@ -1,13 +1,21 @@
 var _ = require('lodash');	
 var nodemailer = require('nodemailer');
 
+const dotenv = require('dotenv');
+// const { JSONParser } = require('formidable/parsers/index.js');
+
+ dotenv.config();
+
+ const { MAIL_HOST, MAIL_PORT, MAIL_USER, MAIL_PASS} = process.env;
+
+
 var config = {
-    host: 'smtp.gmail.com',
-    port: 465,
+    host: MAIL_HOST,
+    port: MAIL_PORT,
     secure: true,
     auth: {
-        user: 'xooeyxdp@gmail.com',
-        pass: 'ijybriopzgjfteuh',
+        user: MAIL_USER,
+        pass: MAIL_PASS,
     }, tls: {
         rejectUnauthorized: false
       }
@@ -16,7 +24,7 @@ var config = {
 var transporter = nodemailer.createTransport(config);
 
 var defaultMail = {
-    from: 'xooey <xooeyxdp@gmaiil.com>',
+    from: `antam <${MAIL_USER}>`,
     text: 'test text',
 };
 
