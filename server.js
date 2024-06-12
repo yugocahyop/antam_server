@@ -560,7 +560,7 @@ const dotenv = require('dotenv');
 
             // const jsonData = JSON.parse(message.toString());
 
-            if(tangki > 6 || node > 5 || tangki <= 0 || node <= 0){
+            if(tangki > 7 || node > 5 || tangki <= 0 || node <= 0){
               return;
             }
 
