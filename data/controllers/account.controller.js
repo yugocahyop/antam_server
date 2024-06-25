@@ -453,10 +453,76 @@ exports.register = async(req, res) => {
 
 
     if(acc3){
-      return res.status(400).send({
+      if(!acc3.active){
+        const encryptedPass = sha256(pass);
+
+        if(encryptedPass != acc3.password){
+          return res.status(400).send({
+            error:
+                "password salah",
+          });
+        }
+
+        crypto.randomBytes(20, function (err, buf) {
+          acc3.activeToken = acc3._id + buf.toString('hex');
+      
+            // Sending activation email
+            var link = url
+            + acc3.activeToken;
+      
+          //   mailer({
+          //     to: req.body.email,
+          //     subject: 'Antam activation link',
+          //     html: 'Please click <a href="' + link + '"> here </a> to activate your account.'
+          // });
+      
+          var fs = require('fs');
+      
+          var path = require('path');
+      
+          var relativePath = path.join(__dirname, "..", "..", 'views', 'email.html');
+      
+      
+          fs.readFile(relativePath, (err, data) => {
+            if(err){
+              console.log(err);
+              return;
+            }
+            let html = data.toString().replace("replace-me-please", link);
+      
+            for (let index = 0; index < 2; index++) {
+               html = html.toString().replace("replace-me-please", link);
+              
+            }
+            mailer({
+              to: req.body.email,
+              subject: 'Antam Monitoring Activation ',
+              html: html
+          }); 
+          // fs.close();
+        });
+      
+          
+          acc3.save()
+          .then(() => {
+            res.status(200).send({message: "Ok"});
+          })
+          .catch((err) => {
+            res.status(500).send({
+              message:
+                err.message || "Some error occurred while creating the Message.",
+            });
+          });
+        });
+
+        return;
+      }else{
+        return res.status(400).send({
           error:
               "email sudah terdaftar",
       });
+      }
+      
   }
 
     if(pass !== passCon){

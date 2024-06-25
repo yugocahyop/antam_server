@@ -377,6 +377,59 @@ const dotenv = require('dotenv');
        
       ];
 
+      let diagData = [
+        [
+          {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
+        ],
+        [
+          {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
+        ],
+        [
+          {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
+        ],
+        [
+          {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
+        ],
+        [
+          {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
+        ],
+        [
+          {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
+          {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
+        ],
+        [
+          {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
+        ],
+      
+      ];
+
+     
+      
+      
+
       
 
         
@@ -396,6 +449,25 @@ const dotenv = require('dotenv');
           alarmSuhuList = listAlarmSuhu ?? [];
           alarmPhList = listAlarmPh ?? [];
           // alarmEnergiList = listAlarmEnergi ?? [];
+
+          const rDiag2 = await diag.findOne({ }).sort({timeStamp_server:-1}).exec();
+
+          if (rDiag2){
+            // arr.splice(0, diagData.length);
+            for (let index = 0; index < rDiag2.diagnosticData.length; index++) {
+              const element = rDiag2.diagnosticData[index];
+
+              for (let index2 = 0; index2 < element.length; index2++) {
+                const e = element[index2];
+
+                diagData[index][index2]["sel"] = e["sel"];
+                diagData[index][index2]["status"] = e["status"];
+                diagData[index][index2]["lastUpdated"] = e["lastUpdated"];
+                
+              }
+              
+            }
+          }
 
           let monitData =  (await monit.find({}).sort({timeStamp_server: -1}).limit(1).exec())[0];
 
@@ -582,75 +654,7 @@ const dotenv = require('dotenv');
             }
           }
 
-            let diagData = [
-              [
-                {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
-              ],
-              [
-                {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
-              ],
-              [
-                {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
-              ],
-              [
-                {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
-              ],
-              [
-                {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
-              ],
-              [
-                {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 2, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 3, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 4, "status": "inactive", "lastUpdated": 1706561733680},
-                {"sel": 5, "status": "inactive", "lastUpdated": 1706561733680},
-              ],
-              [
-                {"sel": 1, "status": "inactive", "lastUpdated": 1706561733680},
-              ],
             
-            ];
-    
-           
-            
-            const rDiag2 = await diag.findOne({ }).sort({timeStamp_server:-1}).exec();
-    
-            if (rDiag2){
-              // arr.splice(0, diagData.length);
-              for (let index = 0; index < rDiag2.diagnosticData.length; index++) {
-                const element = rDiag2.diagnosticData[index];
-  
-                for (let index2 = 0; index2 < element.length; index2++) {
-                  const e = element[index2];
-  
-                  diagData[index][index2]["sel"] = e["sel"];
-                  diagData[index][index2]["status"] = e["status"];
-                  diagData[index][index2]["lastUpdated"] = e["lastUpdated"];
-                  
-                }
-                
-              }
-            }
 
             // console.log(JSON.parse(message.toString()));
 
