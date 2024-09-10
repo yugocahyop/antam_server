@@ -7,6 +7,10 @@ module.exports = (app) => {
     app.post("/monitoring/find",auth, App.find);
 
     app.post("/monitoring/find/last",auth, App.findLast);
+
+    app.post("/monitoring/prepare",auth, App.excelPrepare);
+
+    app.get("/monitoring/download", App.excelDownload);
   
 
   

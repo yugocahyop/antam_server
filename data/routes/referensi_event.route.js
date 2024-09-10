@@ -10,4 +10,6 @@ module.exports = (app) => {
     app.put("/referensi/event/:id",auth, App.update);
   
     app.delete("/referensi/event/:id",auth, App.delete);
+
+    
   };

@@ -12,7 +12,7 @@ const dotenv = require('dotenv');
 var config = {
     host: MAIL_HOST,
     port: MAIL_PORT,
-    secure: true,
+    secure: MAIL_PORT+ "" === '465',
     auth: {
         user: MAIL_USER,
         pass: MAIL_PASS,

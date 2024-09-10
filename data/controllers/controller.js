@@ -112,28 +112,28 @@ exports.findOne = async (res, db, query, find, sort)=>{
 
     
 
-    let{limit, offset,} = query;
+  //   let{limit, offset,} = query;
 
-    let  l, o;
+  //   let  l, o;
 
-  if(isNaN(limit)  ){
-    l = null;
-  }else{
-    l = limit;
-  }
+  // if(isNaN(limit)  ){
+  //   l = null;
+  // }else{
+  //   l = limit;
+  // }
 
-  if(isNaN(offset)){
-    o = null;
-  }
-  else{
-    o = offset;
-  }
+  // if(isNaN(offset)){
+  //   o = null;
+  // }
+  // else{
+  //   o = offset;
+  // }
 
   
 
   // const count = await db.count(find).exec();
-  const history = await db.find(find).sort(sort).skip(o|| 0).limit(1).exec();
-
+  const history = await db.find(find).sort(sort).skip( 0).limit(1).exec();
+    // const history = await db.findOne(find,null,{sort: sort}, null).exec();
   
 
   if(history){

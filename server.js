@@ -70,6 +70,24 @@ const dotenv = require('dotenv');
       
     });
 
+    setInterval(  ()=>{
+     try {
+      const fs = require('node:fs');
+     
+      fs.writeFile(process.env.WATCHDOG_FILE || "./test.js" , "a", err => {
+        if (err) {
+          console.log(err);
+        } else {
+          // console.log("file created")
+        }
+      });
+     } catch (error) {
+      console.log(error);
+     }
+      
+      
+    }, 60000);
+
 
 
        let alarmTeganganList= [];
@@ -586,275 +604,65 @@ const dotenv = require('dotenv');
           //   //   client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: jsonData.timeStamp, timeShift: Math.floor(diff)}) )
           //   // }
           // }
-          
 
-          if(topic == "antam/device"){
-            // console.log(message);
-            let { timeStamp, tangkiData} = JSON.parse(message.toString());
+          try {
 
-            // console.log(tangkiData[0]);
-
-
-            if(typeof timeStamp === 'undefined'){
-              console.log("no timeStamp ");
-              return;
-            }else if(isNaN(timeStamp)){
-              console.log("wrong timeStamp format");
-              return;
-            }
-
-            if(typeof tangkiData === 'undefined'){
-              console.log("no tangkiData ");
-              return;
-            }else if(typeof tangkiData[0] === 'undefined' || typeof tangkiData[0][0] !== 'object' ){
-              console.log("wrong tangki data format");
-              return;
-            }
-            
-           
-
-            let nMonit = new monit({
-              timeStamp: timeStamp,
-              timeStamp_server: Date.now(),
-              tangkiData: tangkiData
-            })
-
-            nMonit.save().catch((err)=>{
-              console.log(err);
-             
-          });
-          }else
-          
-          if(topic == "antam/statusNode" || topic == "antam/statusnode"){
-            // console.log(message);
-            let { timeStamp, tangki, node, status} = JSON.parse(message.toString());
-            // let diag = require("./data/models/diagnostic.model.js");
-
-            // const jsonData = JSON.parse(message.toString());
-
-            if(tangki > 7 || node > 5 || tangki <= 0 || node <= 0){
-              return;
-            }
-
-          if(timeStamp){
-           
-            // console.log(timeStamp + "");
-            const dateNow = Date.now();
-            const diff = ((dateNow /1000) - timeStamp ) ;
-            // console.log(`diff ${diff}`)
-            // console.log(`dateNow ${dateNow/ 1000}`)
-            if(( diff > 5 || diff < -5 ) && !isTimeShift){
-              isTimeShift = true;
-              console.log(`timeSync execute ${diff}`);
-              client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}), {qos: 2} );
-
-              setTimeout(()=>{
-                isTimeShift = false;
-              }, 10000)
-            }
-          }
-
-            
-
-            // console.log(JSON.parse(message.toString()));
-
-
-         
-
-            if(typeof timeStamp === 'undefined'){
-              console.log("no timeStamp ");
-              return;
-            }else if(isNaN(timeStamp)){
-              console.log("wrong timeStamp format");
-              return;
-            }
-
-            if(typeof tangki === 'undefined'){
-              console.log("no tangki ");
-              return;
-            }
-
-            if(typeof node === 'undefined'){
-              console.log("no node ");
-              return;
-            }
-
-            if(typeof status === 'undefined'){
-              console.log("no status ");
-              return;
-            }
-
-            const statusString = status + "";
-            const dateNow = Date.now();
-
-            if(statusString.search("alarmArusTinggi") != -1 || statusString.search("alarmArusRendah") != -1 || statusString.search("alarmTegangan") != -1 ||statusString.search("alarmSuhuTinggi") != -1||
-            statusString.search("alarmSuhuRendah") != -1 || statusString.search("alarmPhTinggi") != -1 || statusString.search("alarmPhRendah") != -1 || statusString === "alarm"){
-              
-
-              if(statusString.search("Arus") != -1 ||  statusString === "alarm") {
-                let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
-
-                if(aAl.length == 0){
-                  alarmArusList.push([tangki, node]);
-                }
-              } 
-                if(statusString.search("Tegangan") != -1 ||  statusString === "alarm") {
-                let aAl = alarmTeganganList.filter((e)=> e[0] == tangki && e[1] == node);
-
-                if(aAl.length == 0){
-                  alarmTeganganList.push([tangki, node]);
-                }
-              }
-
-              if(statusString.search("Suhu") != -1 ||  statusString === "alarm") {
-                let aAl = alarmSuhuList.filter((e)=> e[0] == tangki && e[1] == node);
-
-                if(aAl.length == 0){
-                  alarmSuhuList.push([tangki, node]);
-                }
-              }
-              if(statusString.search("Ph") != -1 ||  statusString === "alarm") {
-                let aAl = alarmPhList.filter((e)=> e[0] == tangki && e[1] == node);
-
-                if(aAl.length == 0){
-                  alarmPhList.push([tangki, node]);
-                }
-              }
-              
-
-              const na = new Alarm({
-                tangki: tangki,
-                node: node,
-                timeStamp: timeStamp,
-                timeStamp_server: dateNow ,
-                status: status,
-                
-              });
-
-              na.save();
-
-              const now = moment().format('DD/MM/yyy HH:mm:ss') ;
-
-              let msgA = "";
-
-              if (statusString === "alarm") {
-                  
-                msgA = 
-                    `Terjadi masalah pada sel ${tangki} - ${node}`;
-              } else {
-                // showMsg(data["tangki"], data["node"],
-                //     "");
-                    msgA =
-                      `${statusString.search("Rendah") != -1? "Minimum" : "Maksimum"} ${statusString.replace("alarm", "").replace("Tinggi", "").replace("Rendah", "")} telah di lewati pada sel ${tangki} - ${node}`;
-                  }
-
-              if((notificationList.filter((e)=> e === msgA)) == 0){
-                // const el = [tangki, node];
-
-                notificationList.push(msgA);
-
-                setTimeout(()=>{
-                  
-                  notificationList.splice(notificationList.indexOf((notificationList.filter((e)=> e === msgA))[0]),1)
-                }, 60000 * 2);
-
-                if (statusString === "alarm") {
-                  
-                  sendPushNotification(
-                    `Antam Monitoring ${now}`, msgA, "antam-monitoring", {});
-                } else {
-                  // showMsg(data["tangki"], data["node"],
-                  //     "");
-                      sendPushNotification(
-                        `Antam Monitoring ${now}`, msgA, "antam-monitoring", {});
-                    }
-              }
-
-              
-             
-            }else {
-              let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
-              let aTl = alarmTeganganList.filter((e)=> e[0] == tangki && e[1] == node);
-              let aSl = alarmSuhuList.filter((e)=> e[0] == tangki && e[1] == node);
-              let aDl = alarmPhList.filter((e)=> e[0] == tangki && e[1] == node);
-             
-
-              if(aAl.length > 0){
-                alarmArusList.splice (alarmArusList.indexOf(aAl[0]), 1);
-              }
-
-              if(aTl.length > 0 ){
-                alarmTeganganList.splice (alarmTeganganList.indexOf(aTl[0]), 1);
-              }
-
-              if(aSl.length > 0 ){
-                alarmSuhuList.splice (alarmSuhuList.indexOf(aSl[0]), 1);
-              }
-
-              if(aDl.length > 0 ){
-                alarmPhList.splice (alarmPhList.indexOf(aDl[0]), 1);
-              }
-
-              // if(aEl.length > 0 ){
-              //   alarmEnergiList.splice (alarmEnergiList.indexOf(aEl[0]), 1);
-              // }
-            }
-            
-            diagData[tangki -1][node -1]["status"] = status;
-            diagData[tangki -1][node -1]["lastUpdated"] = timeStamp * 1000;
-
-            // console.log(`suhu : ${alarmSuhuList}`);
-
-            client.publish("antam/status", JSON.stringify({ 
-              timeStamp: Date.now(),
-            status: true,
-            alarmTegangan: alarmTeganganList.length > 0,
-            alarmSuhu: alarmSuhuList.length > 0,
-            alarmPh: alarmPhList.length > 0,
-            alarmArus: alarmArusList.length > 0}), {qos: 1} )
-
-            let nMonit = new diag({
-              timeStamp: timeStamp,
-              timeStamp_server: dateNow,
-              diagnosticData: diagData,
-              listAlarmArus: alarmArusList,
-              listAlarmTegangan: alarmTeganganList,
-              listAlarmSuhu: alarmSuhuList,
-              listAlarmPh: alarmPhList
-            });
-
-            nMonit.save().catch((err)=>{
-              console.log(err);  });
-
-            // if(typeof rDiag === "undefined"){
-           
+            if(topic == "antam/device"){
+              // console.log(message);
+              let { timeStamp, tangkiData} = JSON.parse(message.toString());
   
+              // console.log(tangkiData[0]);
+  
+  
+              if(typeof timeStamp === 'undefined'){
+                console.log("no timeStamp ");
+                return;
+              }else if(isNaN(timeStamp)){
+                console.log("wrong timeStamp format");
+                return;
+              }
+  
+              if(typeof tangkiData === 'undefined'){
+                console.log("no tangkiData ");
+                return;
+              }else if(typeof tangkiData[0] === 'undefined' || typeof tangkiData[0][0] !== 'object' ){
+                console.log("wrong tangki data format");
+                return;
+              }
+              
              
-            // }else{
-             
-
-            //   rDiag.save();
-            // }
-
+  
+              let nMonit = new monit({
+                timeStamp: timeStamp,
+                timeStamp_server: Date.now(),
+                tangkiData: tangkiData
+              })
+  
+              nMonit.save().catch((err)=>{
+                console.log(err);
+               
+            });
+            }else
             
+            if(topic == "antam/statusNode" || topic == "antam/statusnode"){
+              // console.log(message);
+              let { timeStamp, tangki, node, status} = JSON.parse(message.toString());
+              // let diag = require("./data/models/diagnostic.model.js");
+  
+              // const jsonData = JSON.parse(message.toString());
+  
+              if(tangki > 7 || node > 5 || tangki <= 0 || node <= 0){
+                return;
+              }
+  
+            if(timeStamp){
              
-        
-          }else if(topic == "antam/device/node"){
-            // console.log(message);
-            let { timeStamp, selData, tangki, sel, } = JSON.parse(message.toString());
-
-            // console.log(tangkiData[0]);
-
-            // console.log(JSON.parse(message.toString()));
-
-            if( timeStamp   ){
-           
               // console.log(timeStamp + "");
-              let dateNow = Date.now();
-              let diff = (dateNow /1000) - timeStamp  ;
+              const dateNow = Date.now();
+              const diff = ((dateNow /1000) - timeStamp ) ;
               // console.log(`diff ${diff}`)
               // console.log(`dateNow ${dateNow/ 1000}`)
-              if(( diff > 5 || diff < -5 && !isTimeShift ) ){
+              if(( diff > 5 || diff < -5 ) && !isTimeShift){
                 isTimeShift = true;
                 console.log(`timeSync execute ${diff}`);
                 client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}), {qos: 2} );
@@ -864,254 +672,473 @@ const dotenv = require('dotenv');
                 }, 10000)
               }
             }
-
-
-            if(typeof timeStamp === 'undefined'){
-              console.log("no timeStamp ");
-              return;
-            }else if(isNaN(timeStamp)){
-              console.log("wrong timeStamp format");
-              return;
-            }
-
-            if(typeof selData === 'undefined'){
-              console.log("no seldata ");
-              return;
-            }
-
-            if(typeof tangki === 'undefined'){
-              console.log("no tangki ");
-              return;
-            }
-
-            if(typeof sel === 'undefined'){
-              console.log("no sel ");
-              return;
-            }
-            
+  
+              
+  
+              // console.log(JSON.parse(message.toString()));
+  
+  
            
-            
-
-
-            
-
-            let node =  await monitNode.findOne({tangki: tangki, sel: sel}).exec();
-
-            // console.log(monitData);
-
-            
-            // else{
-            //   let nMonit = new monit({
-            //         timeStamp: timeStamp,
-            //         timeStamp_server: Date.now(),
-            //         tangkiData: tangkiData
-            //       })
-      
-            //       nMonit.save().catch((err)=>{
-            //         console.log(err);
-                   
-            //     });
-            // }
-
-           
-
-            selData.sel = sel;
-
-            try{
-              // tangkiData[tangki -1][sel-1]  = selData;
-
-              if(tangki == 7 && sel ==1){
-                tangkiData[tangki -1][sel-1]["suhu"] = selData["suhu"];
-                 tangkiData[tangki -1][sel-1]["pH"] = selData["pH"];
-            
-              }else{
-                tangkiData[tangki -1][sel-1]["suhu"] = selData["suhu"];
-                tangkiData[tangki -1][sel-1]["tegangan"] = selData["tegangan"];
-                tangkiData[tangki -1][sel-1]["arus"] = selData["arus"];
-                tangkiData[tangki -1][sel-1]["daya"] = selData["daya"];
-                tangkiData[tangki -1][sel-1]["energi"] = selData["energi"];
+  
+              if(typeof timeStamp === 'undefined'){
+                console.log("no timeStamp ");
+                return;
+              }else if(isNaN(timeStamp)){
+                console.log("wrong timeStamp format");
+                return;
+              }
+  
+              if(typeof tangki === 'undefined'){
+                console.log("no tangki ");
+                return;
+              }
+  
+              if(typeof node === 'undefined'){
+                console.log("no node ");
+                return;
+              }
+  
+              if(typeof status === 'undefined'){
+                console.log("no status ");
+                return;
+              }
+  
+              const statusString = status + "";
+              const dateNow = Date.now();
+  
+              if(statusString.search("alarmArusTinggi") != -1 || statusString.search("alarmArusRendah") != -1 || statusString.search("alarmTegangan") != -1 ||statusString.search("alarmSuhuTinggi") != -1||
+              statusString.search("alarmSuhuRendah") != -1 || statusString.search("alarmPhTinggi") != -1 || statusString.search("alarmPhRendah") != -1 || statusString === "alarm"){
+                
+  
+                if(statusString.search("Arus") != -1 ||  statusString === "alarm") {
+                  let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
+  
+                  if(aAl.length == 0){
+                    alarmArusList.push([tangki, node]);
+                  }
+                } 
+                  if(statusString.search("Tegangan") != -1 ||  statusString === "alarm") {
+                  let aAl = alarmTeganganList.filter((e)=> e[0] == tangki && e[1] == node);
+  
+                  if(aAl.length == 0){
+                    alarmTeganganList.push([tangki, node]);
+                  }
+                }
+  
+                if(statusString.search("Suhu") != -1 ||  statusString === "alarm") {
+                  let aAl = alarmSuhuList.filter((e)=> e[0] == tangki && e[1] == node);
+  
+                  if(aAl.length == 0){
+                    alarmSuhuList.push([tangki, node]);
+                  }
+                }
+                if(statusString.search("Ph") != -1 ||  statusString === "alarm") {
+                  let aAl = alarmPhList.filter((e)=> e[0] == tangki && e[1] == node);
+  
+                  if(aAl.length == 0){
+                    alarmPhList.push([tangki, node]);
+                  }
+                }
+                
+  
+                const na = new Alarm({
+                  tangki: tangki,
+                  node: node,
+                  timeStamp: timeStamp,
+                  timeStamp_server: dateNow ,
+                  status: status,
+                  
+                });
+  
+                na.save();
+  
+                const now = moment().format('DD/MM/yyy HH:mm:ss') ;
+  
+                let msgA = "";
+  
+                if (statusString === "alarm") {
+                    
+                  msgA = 
+                      `Terjadi masalah pada sel ${tangki} - ${node}`;
+                } else {
+                  // showMsg(data["tangki"], data["node"],
+                  //     "");
+                      msgA =
+                        `${statusString.search("Rendah") != -1? "Minimum" : "Maksimum"} ${statusString.replace("alarm", "").replace("Tinggi", "").replace("Rendah", "")} telah di lewati pada sel ${tangki} - ${node}`;
+                    }
+  
+                if((notificationList.filter((e)=> e === msgA)) == 0){
+                  // const el = [tangki, node];
+  
+                  notificationList.push(msgA);
+  
+                  setTimeout(()=>{
+                    
+                    notificationList.splice(notificationList.indexOf((notificationList.filter((e)=> e === msgA))[0]),1)
+                  }, 60000 * 2);
+  
+                  if (statusString === "alarm") {
+                    
+                    sendPushNotification(
+                      `Antam Monitoring ${now}`, msgA, "antam-monitoring", {});
+                  } else {
+                    // showMsg(data["tangki"], data["node"],
+                    //     "");
+                        sendPushNotification(
+                          `Antam Monitoring ${now}`, msgA, "antam-monitoring", {});
+                      }
+                }
+  
+                
+               
+              }else {
+                let aAl = alarmArusList.filter((e)=> e[0] == tangki && e[1] == node);
+                let aTl = alarmTeganganList.filter((e)=> e[0] == tangki && e[1] == node);
+                let aSl = alarmSuhuList.filter((e)=> e[0] == tangki && e[1] == node);
+                let aDl = alarmPhList.filter((e)=> e[0] == tangki && e[1] == node);
+               
+  
+                if(aAl.length > 0){
+                  alarmArusList.splice (alarmArusList.indexOf(aAl[0]), 1);
+                }
+  
+                if(aTl.length > 0 ){
+                  alarmTeganganList.splice (alarmTeganganList.indexOf(aTl[0]), 1);
+                }
+  
+                if(aSl.length > 0 ){
+                  alarmSuhuList.splice (alarmSuhuList.indexOf(aSl[0]), 1);
+                }
+  
+                if(aDl.length > 0 ){
+                  alarmPhList.splice (alarmPhList.indexOf(aDl[0]), 1);
+                }
+  
+                // if(aEl.length > 0 ){
+                //   alarmEnergiList.splice (alarmEnergiList.indexOf(aEl[0]), 1);
+                // }
               }
               
-            }catch(err){
-
-            }
-
-            
-
-            
-
-            // console.log(tangkiData);
-
-           
-
-            if(!node ){
-              let nMonitNode = new monitNode({
+              diagData[tangki -1][node -1]["status"] = status;
+              diagData[tangki -1][node -1]["lastUpdated"] = timeStamp * 1000;
+  
+              // console.log(`suhu : ${alarmSuhuList}`);
+  
+              client.publish("antam/status", JSON.stringify({ 
+                timeStamp: Date.now(),
+              status: true,
+              alarmTegangan: alarmTeganganList.length > 0,
+              alarmSuhu: alarmSuhuList.length > 0,
+              alarmPh: alarmPhList.length > 0,
+              alarmArus: alarmArusList.length > 0}), {qos: 1} )
+  
+              let nMonit = new diag({
                 timeStamp: timeStamp,
-                tangki: tangki,
-                sel: sel,
-                selData: selData
+                timeStamp_server: dateNow,
+                diagnosticData: diagData,
+                listAlarmArus: alarmArusList,
+                listAlarmTegangan: alarmTeganganList,
+                listAlarmSuhu: alarmSuhuList,
+                listAlarmPh: alarmPhList
               });
-
-              nMonitNode.save().catch((err)=>{
-                console.log(err);
+  
+              nMonit.save().catch((err)=>{
+                console.log(err);  });
+  
+              // if(typeof rDiag === "undefined"){
+             
+    
                
-              });
-            }else{
-              node.selData = selData;
-              node.timeStamp = timeStamp;
-
-              node.save().catch((err) =>{
-                console.log(err);
-              })
-            }
-
-            // const payload = {
-            //   "timeStamp": timeStamp,
-            //   "tangkiData": tangkiData
-            // }
-
-            let nMonit = new monit({
-              timeStamp: timeStamp,
-              timeStamp_server: Date.now(),
-              tangkiData: tangkiData
-            })
-
-            nMonit.save().catch((err)=>{
-              console.log(err);});
-
-            // client.publish("antam/device", JSON.stringify(payload), {qos: 2});
-            
-             // let nMonit = new monit({
-            //   timeStamp: timeStamp,
-            //   tangkiData: tangkiData
-            // })
-
-            // nMonit.save().catch((err)=>{
-            //   console.log(err);
+              // }else{
+               
+  
+              //   rDiag.save();
+              // }
+  
+              
+               
+          
+            }else if(topic == "antam/device/node"){
+              
+              // console.log(message);
+              let { timeStamp, selData, tangki, sel, } = JSON.parse(message.toString());
+  
+              // console.log(tangkiData[0]);
+  
+              // console.log(JSON.parse(message.toString()));
+  
+              if( timeStamp   ){
              
-            // });
-          }
-          else if(topic == "antam/status"){
-            // console.log(message);
-            let { timeStamp, status, alarmArus, alarmTegangan} = JSON.parse(message.toString());
-
-            // console.log(tangkiData[0]);
-
-
-            if(typeof timeStamp === 'undefined'){
-              console.log("no timeStamp ");
-              return;
-            }else if(isNaN(timeStamp)){
-              console.log("wrong timeStamp format");
-              return;
-            }
-
-            if(typeof status !== 'boolean'){
-              console.log("wrong stat format ");
-              return;
-            } 
-            
-            if(typeof alarmArus !== 'boolean'){
-              console.log("wrong alarm arus format ");
-              return;
-            }
-
-            if(typeof alarmArus !== 'boolean'){
-              console.log("wrong alarm tegangan format ");
-              return;
-            }
-            
-            
-
-            let nMonit = new Status({
-              timeStamp: timeStamp,
-              status: status,
-              alarmArus: alarmArus,
-              alarmTegangan: alarmTegangan
-            })
-
-            nMonit.save().catch((err)=>{
-              console.log(err);
+                // console.log(timeStamp + "");
+                let dateNow = Date.now();
+                let diff = (dateNow /1000) - timeStamp  ;
+                // console.log(`diff ${diff}`)
+                // console.log(`dateNow ${dateNow/ 1000}`)
+                if(( diff > 5 || diff < -5 && !isTimeShift ) ){
+                  isTimeShift = true;
+                  console.log(`timeSync execute ${diff}`);
+                  client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}), {qos: 2} );
+    
+                  setTimeout(()=>{
+                    isTimeShift = false;
+                  }, 10000)
+                }
+              }
+  
+  
+              if(typeof timeStamp === 'undefined'){
+                console.log("no timeStamp ");
+                return;
+              }else if(isNaN(timeStamp)){
+                console.log("wrong timeStamp format");
+                return;
+              }
+  
+              if(typeof selData === 'undefined'){
+                console.log("no seldata ");
+                return;
+              }
+  
+              if(typeof tangki === 'undefined'){
+                console.log("no tangki ");
+                return;
+              }
+  
+              if(typeof sel === 'undefined'){
+                console.log("no sel ");
+                return;
+              }
+              
              
-          });
-          }
-
-          else if(topic == "antam/statistic"){
-            // console.log(message);
-            let { timeStamp, totalWaktu,
-              teganganTotal,
-              arusTotal,
-              power,
-              energi,} = JSON.parse(message.toString());
-
-            // console.log(tangkiData[0]);
-
-
-            if(typeof timeStamp === 'undefined'){
-              console.log("no timeStamp ");
-              return;
-            }else if(isNaN(timeStamp)){
-              console.log("wrong timeStamp format");
-              return;
-            }
-
-            if(isNaN(totalWaktu)){
-              console.log("wrong total waktu format ");
-              return;
-            } 
-            
-            if(isNaN(teganganTotal)){
-              console.log("wrong teganganTotal format ");
-              return;
-            }
-
-            if(isNaN(arusTotal)){
-              console.log("wrong arusTotal format ");
-              return;
-            }
-
-            if(isNaN(power)){
-              console.log("wrong power format ");
-              return;
-            }
-            if(isNaN(energi)){
-              console.log("wrong teganganTotal format ");
-              return;
-            }
-
-            
-            
-
-            // // let stat = await monit.findOne({timeStamp: {$gt: 0 }}).sort({timeStamp_server : -1}).exec();
-
-            // // if(!stat){
-              let nMonit = new statistic({
-                timeStamp_server: Date.now(),
+              
+  
+  
+              
+  
+              let node =  await monitNode.findOne({tangki: tangki, sel: sel}).exec();
+  
+              // console.log(monitData);
+  
+              
+              // else{
+              //   let nMonit = new monit({
+              //         timeStamp: timeStamp,
+              //         timeStamp_server: Date.now(),
+              //         tangkiData: tangkiData
+              //       })
+        
+              //       nMonit.save().catch((err)=>{
+              //         console.log(err);
+                     
+              //     });
+              // }
+  
+             
+  
+              selData.sel = sel;
+  
+              try{
+                // tangkiData[tangki -1][sel-1]  = selData;
+  
+                if(tangki == 7 && sel ==1){
+                  tangkiData[tangki -1][sel-1]["suhu"] = selData["suhu"];
+                   tangkiData[tangki -1][sel-1]["pH"] = selData["pH"];
+              
+                }else{
+                  tangkiData[tangki -1][sel-1]["suhu"] = selData["suhu"];
+                  tangkiData[tangki -1][sel-1]["tegangan"] = selData["tegangan"];
+                  tangkiData[tangki -1][sel-1]["arus"] = selData["arus"];
+                  tangkiData[tangki -1][sel-1]["daya"] = selData["daya"];
+                  tangkiData[tangki -1][sel-1]["energi"] = selData["energi"];
+                }
+                
+              }catch(err){
+  
+              }
+  
+              
+  
+              
+  
+              // console.log(tangkiData);
+  
+             
+  
+              if(!node ){
+                let nMonitNode = new monitNode({
+                  timeStamp: timeStamp,
+                  tangki: tangki,
+                  sel: sel,
+                  selData: selData
+                });
+  
+                nMonitNode.save().catch((err)=>{
+                  console.log(err);
+                 
+                });
+              }else{
+                node.selData = selData;
+                node.timeStamp = timeStamp;
+  
+                node.save().catch((err) =>{
+                  console.log(err);
+                })
+              }
+  
+              // const payload = {
+              //   "timeStamp": timeStamp,
+              //   "tangkiData": tangkiData
+              // }
+  
+              let nMonit = new monit({
                 timeStamp: timeStamp,
-                totalWaktu: totalWaktu,
-                teganganTotal: teganganTotal,
-                arusTotal: arusTotal,
-                power: power,
-                energi: energi
+                timeStamp_server: Date.now(),
+                tangkiData: tangkiData
+              })
+  
+              nMonit.save().catch((err)=>{
+                console.log(err);});
+  
+              // client.publish("antam/device", JSON.stringify(payload), {qos: 2});
+              
+               // let nMonit = new monit({
+              //   timeStamp: timeStamp,
+              //   tangkiData: tangkiData
+              // })
+  
+              // nMonit.save().catch((err)=>{
+              //   console.log(err);
+               
+              // });
+            }
+            else if(topic == "antam/status"){
+              // console.log(message);
+              let { timeStamp, status, alarmArus, alarmTegangan} = JSON.parse(message.toString());
+  
+              // console.log(tangkiData[0]);
+  
+  
+              if(typeof timeStamp === 'undefined'){
+                console.log("no timeStamp ");
+                return;
+              }else if(isNaN(timeStamp)){
+                console.log("wrong timeStamp format");
+                return;
+              }
+  
+              if(typeof status !== 'boolean'){
+                console.log("wrong stat format ");
+                return;
+              } 
+              
+              if(typeof alarmArus !== 'boolean'){
+                console.log("wrong alarm arus format ");
+                return;
+              }
+  
+              if(typeof alarmArus !== 'boolean'){
+                console.log("wrong alarm tegangan format ");
+                return;
+              }
+              
+              
+  
+              let nMonit = new Status({
+                timeStamp: timeStamp,
+                status: status,
+                alarmArus: alarmArus,
+                alarmTegangan: alarmTegangan
               })
   
               nMonit.save().catch((err)=>{
                 console.log(err);
-              });
-            // // }else{
-            //   stat.timeStamp_server = Date.now();
-            //   stat.timeStamp = timeStamp;
-            //   stat.totalWaktu = totalWaktu;
-            //   stat.teganganTotal = teganganTotal;
-            //   stat.arusTotal = arusTotal;
-            //   stat.power = power;
-            //   stat.energi = energi;
-
-            //   stat.save();
-            // }
-
-           
+               
+            });
+            }
+  
+            else if(topic == "antam/statistic"){
+              // console.log(message);
+              let { timeStamp, totalWaktu,
+                teganganTotal,
+                arusTotal,
+                power,
+                energi,} = JSON.parse(message.toString());
+  
+              // console.log(tangkiData[0]);
+  
+  
+              if(typeof timeStamp === 'undefined'){
+                console.log("no timeStamp ");
+                return;
+              }else if(isNaN(timeStamp)){
+                console.log("wrong timeStamp format");
+                return;
+              }
+  
+              if(isNaN(totalWaktu)){
+                console.log("wrong total waktu format ");
+                return;
+              } 
+              
+              if(isNaN(teganganTotal)){
+                console.log("wrong teganganTotal format ");
+                return;
+              }
+  
+              if(isNaN(arusTotal)){
+                console.log("wrong arusTotal format ");
+                return;
+              }
+  
+              if(isNaN(power)){
+                console.log("wrong power format ");
+                return;
+              }
+              if(isNaN(energi)){
+                console.log("wrong teganganTotal format ");
+                return;
+              }
+  
+              
+              
+  
+              // // let stat = await monit.findOne({timeStamp: {$gt: 0 }}).sort({timeStamp_server : -1}).exec();
+  
+              // // if(!stat){
+                let nMonit = new statistic({
+                  timeStamp_server: Date.now(),
+                  timeStamp: timeStamp,
+                  totalWaktu: totalWaktu,
+                  teganganTotal: teganganTotal,
+                  arusTotal: arusTotal,
+                  power: power,
+                  energi: energi
+                })
+    
+                nMonit.save().catch((err)=>{
+                  console.log(err);
+                });
+              // // }else{
+              //   stat.timeStamp_server = Date.now();
+              //   stat.timeStamp = timeStamp;
+              //   stat.totalWaktu = totalWaktu;
+              //   stat.teganganTotal = teganganTotal;
+              //   stat.arusTotal = arusTotal;
+              //   stat.power = power;
+              //   stat.energi = energi;
+  
+              //   stat.save();
+              // }
+  
+             
+            }
+            
+          } catch (error) {
+            console.log(error)
           }
+          
+
+          
           // client.end();
         });
 
