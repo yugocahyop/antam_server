@@ -5,10 +5,13 @@ module.exports = (app) => {
     // app.post("/monitoring",auth, App.create);
    
     app.post("/monitoring/find",auth, App.find);
+    app.post("/monitoring/find/start",auth, App.findStart);
 
     app.post("/monitoring/find/last",auth, App.findLast);
 
-    app.post("/monitoring/prepare",auth, App.excelPrepare);
+    app.post("/monitoring/find/start/last",auth, App.findStartlast);
+
+    app.post("/monitoring/prepare",auth, App.excelPrepare2);
 
     app.get("/monitoring/download", App.excelDownload);
   

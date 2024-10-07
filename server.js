@@ -97,6 +97,8 @@ const dotenv = require('dotenv');
      
        let notificationList = [];
 
+       let isStart = false;
+
        let tangkiData = [
               
     
@@ -524,6 +526,12 @@ const dotenv = require('dotenv');
             }
           });
 
+          client.subscribe("antam/device/start", {qos: 1}, (err) => {
+            if(err){
+              console.log(err);
+            }
+          });
+
           client.subscribe("antam/device/node", {qos: 1}, (err) => {
             if(err){
               console.log(err);
@@ -856,8 +864,23 @@ const dotenv = require('dotenv');
               // }
   
               
-               
-          
+            }else if(topic == "antam/device/start"){
+              // let { isStart } = JSON.parse(message.toString());
+              isStart = !isStart;
+
+              console.log(`isStart: ${isStart}`)
+
+              let nMonit = new monit({
+                timeStamp: Date.now() /1000,
+                timeStamp_server: Date.now(),
+                tangkiData: tangkiData,
+                isStart: isStart,
+                // isStop: !isStart,
+              })
+  
+              nMonit.save().catch((err)=>{
+                console.log(err);});
+              
             }else if(topic == "antam/device/node"){
               
               // console.log(message);

@@ -132,7 +132,7 @@ exports.findOne = async (res, db, query, find, sort)=>{
   
 
   // const count = await db.count(find).exec();
-  const history = await db.find(find).sort(sort).skip( 0).limit(1).exec();
+  const history = await db.find(find).lean().sort(sort).skip( 0).limit(1).exec();
     // const history = await db.findOne(find,null,{sort: sort}, null).exec();
   
 
