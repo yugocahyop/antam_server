@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const mongoose = require('mongoose');
 const cluster =  require('node:cluster');
+var serveStatic = require('serve-static')
 
 
 
@@ -1197,9 +1198,22 @@ const dotenv = require('dotenv');
 
         const bodyParser = require('body-parser');
 
+        const contentDisposition = require('content-disposition');
+
+        // const path = require('path')
+
+
         app.set('trust proxy', ip => {
             return true;
         });
+
+        function setHeaders (res, path) {
+          res.setHeader('Content-Disposition', contentDisposition(path))
+        }        
+
+        app.use("/static", serveStatic(".", {
+          setHeaders: setHeaders
+        }))
 
         app.use(cors());
 
