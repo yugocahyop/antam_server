@@ -4,7 +4,7 @@ module.exports = (app) => {
   
     // app.post("/monitoring",auth, App.create);
    
-    app.post("/monitoring/find",auth, App.find);
+    app.post("/monitoring/find",auth, App.find2);
     app.post("/monitoring/find/start",auth, App.findStart);
 
     app.post("/monitoring/find/last",auth, App.findLast);

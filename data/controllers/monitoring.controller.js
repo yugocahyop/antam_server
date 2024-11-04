@@ -85,13 +85,13 @@ exports.find = async(req, res ) => {
 
         let batchResult = {timeStamp: currentBatchStart, timeStamp_server: currentBatchStart *1000, tangkiData: [[],[],[],[],[],[],[]]};
         
-        console.log(
-          `Processing batch from ${moment
-            .unix(currentBatchStart)
-            .format('YYYY-MM-DD HH:mm:ss')} to ${moment
-            .unix(batchEnd)
-            .format('YYYY-MM-DD HH:mm:ss')}`
-        );
+        // console.log(
+        //   `Processing batch from ${moment
+        //     .unix(currentBatchStart)
+        //     .format('YYYY-MM-DD HH:mm:ss')} to ${moment
+        //     .unix(batchEnd)
+        //     .format('YYYY-MM-DD HH:mm:ss')}`
+        // );
 
         //init batchResult
         for (let sel = 0; sel < 6; sel++) {
@@ -212,6 +212,175 @@ exports.find = async(req, res ) => {
     }
 
     
+}
+
+exports.find2 = async(req, res ) => {
+  let {from, to, interval,offsetTime} = req.body;
+
+  if(typeof from === 'undefined'){
+      res.status(400).send({error: "from is required"});
+      return;
+  }
+
+  if(typeof interval !== 'undefined' && interval > 1){
+    
+
+    // let find =  {$and: [{timeStamp_server: {$gte: from}}, {timeStamp_server: {$lte: to}}, {$or: [{timeStamp: {$mod: [interval , 0]}}, ]} ]};
+
+    // controller.find(res, Monitoring, req.query, find, {timeStamp_server:-1});
+
+    let {limit} = req.query;
+
+    let currentBatchStart =  ( to/1000);
+
+    if(offsetTime && offsetTime > 0){
+      currentBatchStart = offsetTime
+    }
+
+    const endRange = (from/ 1000);
+
+    let result = [];
+
+    // if(currentBatchStart == 0){
+    //   currentBatchStart = from /1000;
+    // }
+
+  //  console.log(currentBatchStart == offsetTime);
+  // console.log(`is more than end1: ${currentBatchStart > (to/1000)}`);
+    while (currentBatchStart > endRange && result.length < limit) {
+      let batchEnd = Math.max((currentBatchStart - interval) +1, endRange );
+
+      let partialStart = currentBatchStart;
+
+      let batchResult = {timeStamp: currentBatchStart, timeStamp_server: currentBatchStart *1000, tangkiData: [[],[],[],[],[],[],[]]};
+      
+      console.log(
+        `Processing batch from ${moment
+          .unix(currentBatchStart)
+          .format('YYYY-MM-DD HH:mm:ss')} to ${moment
+          .unix(batchEnd)
+          .format('YYYY-MM-DD HH:mm:ss')}`
+      );
+
+      //init batchResult
+      for (let sel = 0; sel < 6; sel++) {
+        for (let subsel = 0; subsel < 5; subsel++) {
+          batchResult.tangkiData[sel].push ( {
+            sel: subsel +1,
+            suhu: 0.0,
+            tegangan: 0.0,
+            arus: 0.0,
+            daya: 0.0,
+            energi: 0.0,
+            totalWeight: 0.0
+          }); 
+        }  
+      }
+      batchResult.tangkiData[6].push ( {
+        suhu: 0.0,
+        pH: 0.0,
+        totalWeight: 0.0
+      }); 
+
+      while (partialStart >= batchEnd) {
+        const partialEnd = Math.max(partialStart - 999, batchEnd);
+
+        const pipeline = [
+          {
+            $match: {
+              timeStamp: { $lte: partialStart, $gte: partialEnd },
+            },
+          },
+          { $sort: { timeStamp: -1 } },
+        ];
+
+        let data = await Monitoring.aggregate(pipeline)
+          .allowDiskUse(true)
+          .exec();
+
+          // console.log(data);
+        for (let i = 0; i < data.length; i++) {
+          // const prevTime = data[i-1].timeStamp;
+          // const currTime = data[i].timeStamp;
+
+          // const weight = currTime - prevTime;
+
+          const element = data[i];
+
+          const tangkiData = element.tangkiData;
+
+          for (let sel = 0; sel < 6; sel++) {         
+            for (let subsel = 0; subsel < 5; subsel++) {
+              const t = tangkiData[sel][subsel];
+              // console.log(t);
+              batchResult.tangkiData[sel][subsel].suhu += (t.suhu );
+              batchResult.tangkiData[sel][subsel].tegangan += (t.tegangan );
+              batchResult.tangkiData[sel][subsel].arus += (t.arus );
+              batchResult.tangkiData[sel][subsel].daya += (t.daya );
+              batchResult.tangkiData[sel][subsel].energi += (t.energi );
+              batchResult.tangkiData[sel][subsel].totalWeight += 1;
+            }
+          }
+          
+          const t = tangkiData[6][0];
+          batchResult.tangkiData[6][0].suhu += (t.suhu );
+          batchResult.tangkiData[6][0].pH += (t.pH );
+          batchResult.tangkiData[6][0].totalWeight += 1;
+          
+        }
+        partialStart -= 1000;
+      }
+
+      let hasData = false;
+      // console.log(batchResult);
+      for (let sel = 0; sel < 6; sel++) {         
+        for (let subsel = 0; subsel < 5; subsel++) {
+         
+          const totalWeight = batchResult.tangkiData[sel][subsel].totalWeight;
+
+          if(totalWeight > 0){
+            batchResult.tangkiData[sel][subsel].suhu /= totalWeight;
+            batchResult.tangkiData[sel][subsel].tegangan /= totalWeight;
+            batchResult.tangkiData[sel][subsel].arus /= totalWeight;
+            batchResult.tangkiData[sel][subsel].daya /= totalWeight;
+            batchResult.tangkiData[sel][subsel].energi /= totalWeight;
+          }
+          
+          
+          hasData = totalWeight >= 1;
+        }
+      }
+
+      const totalWeight = batchResult.tangkiData[6][0].totalWeight;
+
+      if(totalWeight > 0){
+        batchResult.tangkiData[6][0].suhu /= totalWeight;
+        batchResult.tangkiData[6][0].pH /= totalWeight;
+      }
+      
+      
+      if(hasData){
+        result.push(batchResult);
+      }
+      
+
+      currentBatchStart -= interval;
+    }
+
+    // console.log(result);
+
+    // console.log(`is empty: ${result.length == 0}`);
+    // console.log(`is more than end2: ${currentBatchStart >= endRange}`);
+
+    res.send({count: currentBatchStart <= endRange || result.length == 0 ? result.length: Math.floor(to - from /interval), data: result, intervalOffset: Math.floor(currentBatchStart) });
+
+  }else{
+    let find = to ? {$and: [{timeStamp_server: {$gte: from}}, {timeStamp_server: {$lte: to}} ]} : {timeStamp_server: {$gte: from}};
+
+    controller.find(res, Monitoring, req.query, find, {timeStamp_server:-1});
+  }
+
+  
 }
 
 exports.findStart = async(req, res ) => {

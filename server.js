@@ -675,7 +675,9 @@ const dotenv = require('dotenv');
                 isTimeShift = true;
                 console.log(`timeSync execute ${diff}`);
                 client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}), {qos: 2} );
-  
+                
+                timeStamp += Math.floor(diff);
+
                 setTimeout(()=>{
                   isTimeShift = false;
                 }, 10000)
@@ -902,7 +904,9 @@ const dotenv = require('dotenv');
                   isTimeShift = true;
                   console.log(`timeSync execute ${diff}`);
                   client.publish("antam/timeSync", JSON.stringify({oldTimeStamp: timeStamp, timeShift: Math.floor(diff)}), {qos: 2} );
-    
+                  
+                  timeStamp += Math.floor(diff);
+                  
                   setTimeout(()=>{
                     isTimeShift = false;
                   }, 10000)
