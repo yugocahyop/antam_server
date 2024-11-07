@@ -282,8 +282,12 @@ exports.find2 = async(req, res ) => {
         totalWeight: 0.0
       }); 
 
+      let previousLastDataPoint = null
+
       while (partialStart >= batchEnd) {
         const partialEnd = Math.max(partialStart - 999, batchEnd);
+        const isLastPartial = partialEnd == batchEnd;
+
 
         const pipeline = [
           {
@@ -298,14 +302,24 @@ exports.find2 = async(req, res ) => {
           .allowDiskUse(true)
           .exec();
 
+        if(previousLastDataPoint && data.length >0){
+          data.unshift(previousLastDataPoint);
+        }
+
+        if(data.length >0){
+          previousLastDataPoint = data[data.length -1];
+        }else{
+          previousLastDataPoint = null;
+        }
+
           // console.log(data);
-        for (let i = 0; i < data.length; i++) {
-          // const prevTime = data[i-1].timeStamp;
-          // const currTime = data[i].timeStamp;
+        for (let i = 1; i < data.length; i++) {
+          const prevTime = data[i-1].timeStamp;
+          const currTime = data[i].timeStamp;
 
-          // const weight = currTime - prevTime;
+          const weight = prevTime - currTime;
 
-          const element = data[i];
+          const element = data[i-1];
 
           const tangkiData = element.tangkiData;
 
@@ -313,19 +327,48 @@ exports.find2 = async(req, res ) => {
             for (let subsel = 0; subsel < 5; subsel++) {
               const t = tangkiData[sel][subsel];
               // console.log(t);
-              batchResult.tangkiData[sel][subsel].suhu += (t.suhu );
-              batchResult.tangkiData[sel][subsel].tegangan += (t.tegangan );
-              batchResult.tangkiData[sel][subsel].arus += (t.arus );
-              batchResult.tangkiData[sel][subsel].daya += (t.daya );
-              batchResult.tangkiData[sel][subsel].energi += (t.energi );
-              batchResult.tangkiData[sel][subsel].totalWeight += 1;
+              batchResult.tangkiData[sel][subsel].suhu += (t.suhu * weight );
+              batchResult.tangkiData[sel][subsel].tegangan += (t.tegangan * weight );
+              batchResult.tangkiData[sel][subsel].arus += (t.arus * weight);
+              batchResult.tangkiData[sel][subsel].daya += (t.daya * weight);
+              batchResult.tangkiData[sel][subsel].energi += (t.energi * weight);
+              batchResult.tangkiData[sel][subsel].totalWeight += weight;
             }
           }
           
           const t = tangkiData[6][0];
-          batchResult.tangkiData[6][0].suhu += (t.suhu );
-          batchResult.tangkiData[6][0].pH += (t.pH );
-          batchResult.tangkiData[6][0].totalWeight += 1;
+          batchResult.tangkiData[6][0].suhu += (t.suhu * weight);
+          batchResult.tangkiData[6][0].pH += (t.pH * weight );
+          batchResult.tangkiData[6][0].totalWeight += weight;
+
+          if(isLastPartial && i == (data.length -1)){
+            const prevTime = data[i].timeStamp;
+            const currTime = batchEnd;
+  
+            const weight = prevTime - currTime;
+  
+            const element = data[i];
+  
+            const tangkiData = element.tangkiData;
+  
+            for (let sel = 0; sel < 6; sel++) {         
+              for (let subsel = 0; subsel < 5; subsel++) {
+                const t = tangkiData[sel][subsel];
+                // console.log(t);
+                batchResult.tangkiData[sel][subsel].suhu += (t.suhu * weight );
+                batchResult.tangkiData[sel][subsel].tegangan += (t.tegangan * weight );
+                batchResult.tangkiData[sel][subsel].arus += (t.arus * weight);
+                batchResult.tangkiData[sel][subsel].daya += (t.daya * weight);
+                batchResult.tangkiData[sel][subsel].energi += (t.energi * weight);
+                batchResult.tangkiData[sel][subsel].totalWeight += weight;
+              }
+            }
+            
+            const t = tangkiData[6][0];
+            batchResult.tangkiData[6][0].suhu += (t.suhu * weight);
+            batchResult.tangkiData[6][0].pH += (t.pH * weight );
+            batchResult.tangkiData[6][0].totalWeight += weight;
+          }
           
         }
         partialStart -= 1000;
