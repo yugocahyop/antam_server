@@ -1217,6 +1217,10 @@ const dotenv = require('dotenv');
 
         app.use("/static", serveStatic(".", {
           setHeaders: setHeaders
+        }));
+
+        app.use("/staticsupport", serveStatic("./support", {
+          setHeaders: setHeaders
         }))
 
         app.use(cors());
@@ -1245,6 +1249,7 @@ const dotenv = require('dotenv');
         require('./data/routes/log.route.js')(app);
         require('./data/routes/alarm.route.js')(app);
         require('./data/routes/setting.route.js')(app);
+        require('./data/routes/support.route.js')(app);
         // require('./data/routes/jadwal.route.js')(app);
      
 
